@@ -1,13 +1,13 @@
-package org.example.mega_crew.user.service;
+package org.example.mega_crew.domain.user.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.example.mega_crew.user.dto.request.UserSignupRequest;
-import org.example.mega_crew.user.dto.response.UserResponse;
-import org.example.mega_crew.user.entity.AuthProvider;
-import org.example.mega_crew.user.entity.User;
-import org.example.mega_crew.user.entity.UserRole;
-import org.example.mega_crew.user.repository.UserRepository;
+import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
+import org.example.mega_crew.domain.user.dto.response.UserResponse;
+import org.example.mega_crew.domain.user.entity.AuthProvider;
+import org.example.mega_crew.domain.user.entity.User;
+import org.example.mega_crew.domain.user.entity.UserRole;
+import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

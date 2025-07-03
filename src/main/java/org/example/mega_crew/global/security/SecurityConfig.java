@@ -1,4 +1,4 @@
-package org.example.mega_crew.config;
+package org.example.mega_crew.global.security;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

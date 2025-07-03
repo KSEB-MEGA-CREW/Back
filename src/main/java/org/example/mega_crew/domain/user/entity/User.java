@@ -1,4 +1,4 @@
-package org.example.mega_crew.user.entity;
+package org.example.mega_crew.domain.user.entity;
 
 
 import jakarta.persistence.*;

@@ -1,4 +1,4 @@
-package org.example.mega_crew.user.service;
+package org.example.mega_crew.domain.user.service;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
 

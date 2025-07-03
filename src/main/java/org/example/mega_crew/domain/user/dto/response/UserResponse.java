@@ -1,8 +1,8 @@
-package org.example.mega_crew.user.dto.response;
+package org.example.mega_crew.domain.user.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import org.example.mega_crew.user.entity.User;
+import org.example.mega_crew.domain.user.entity.User;
 
 import java.security.AuthProvider;
 import java.time.LocalDateTime;

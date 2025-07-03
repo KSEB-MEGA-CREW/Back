@@ -1,4 +1,4 @@
-package org.example.mega_crew.user.dto.request;
+package org.example.mega_crew.domain.user.dto.request;
 
 
 import jakarta.validation.constraints.Email;

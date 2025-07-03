@@ -1,4 +1,4 @@
-package org.example.mega_crew.Security;
+package org.example.mega_crew.global.security.jwt;
 
 
 import io.jsonwebtoken.security.Keys;

@@ -1,7 +1,7 @@
-package org.example.mega_crew.user;
+package org.example.mega_crew.domain.user;
 
 import lombok.Getter;
-import org.example.mega_crew.user.entity.User;
+import org.example.mega_crew.domain.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 

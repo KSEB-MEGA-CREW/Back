@@ -1,4 +1,4 @@
-package org.example.mega_crew.user.dto.response;
+package org.example.mega_crew.domain.user.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
