@@ -7,6 +7,16 @@ springdoc:
     tags-sorter: alpha
 
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET} # 필요하면 redirect-uri 변경하기
+            redirect-uri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME:root}
@@ -29,3 +39,7 @@ spring:
   server:
     port: 8080
 
+jwt:
+  sercret: ${JWT_SECRET}
+  access-token-expiration: 3600000 # 1 hour
+  refresh-token-expiration: 1209600000 # 14 days
