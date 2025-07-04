@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.example.mega_crew.global.security.oauth2.OAuth2UserInfo;
 import org.example.mega_crew.global.security.oauth2.OAuth2UserInfoFactory;
 import org.example.mega_crew.domain.user.entity.AuthProvider;
-import org.example.mega_crew.domain.user.entity.CustomOAuth2User;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.domain.user.entity.UserRole;
 import org.example.mega_crew.domain.user.repository.UserRepository;
