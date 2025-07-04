@@ -1,8 +1,9 @@
-package org.example.mega_crew.user.entity;
+package org.example.mega_crew.domain.user.entity;
 
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.mega_crew.global.common.BaseEntity;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -12,19 +13,17 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "members")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
-public class User implements UserDetails {
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class User extends BaseEntity implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(unique = true, nullable = false)
-  private String email; // 우선 email nullable = false
+  private String email;
 
   private String password;
 
@@ -32,35 +31,43 @@ public class User implements UserDetails {
   private String username;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private UserRole role; // role을 부여함으로써 일반, 소셜 연동 회원 구분
+  @Builder.Default
+  private UserRole role = UserRole.USER; // 기본값 설정
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private AuthProvider authProvider;
+  @Builder.Default
+  private AuthProvider authProvider = AuthProvider.LOCAL; // 기본값 설정
 
   private String providerId;
 
-  @Column(nullable = false)
-  private boolean isActive = true;
+  public void updateUsername(String username){
+    this.username = username;
+  }
 
+  // OAuth2 사용자 정보 업데이트
+  public void updateOAuth2Info(String username) {
+    this.username = username;
+  }
+
+  // UserDetails 구현 메서드들...
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities(){
     return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
   }
 
   @Override
-  public String getUsername(){
-    return username;
-  }
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
+  public String getPassword(){
+    return password;
   }
 
   @Override
-  public boolean isAccountNonLocked() {
-    return isActive;
+  public String getUsername(){
+    return username;
+  }
+
+  @Override
+  public boolean isAccountNonExpired() {
+    return true;
   }
 
   @Override
@@ -70,11 +77,6 @@ public class User implements UserDetails {
 
   @Override
   public boolean isEnabled() {
-    return isActive;
+    return true;
   }
-
-  public void updateUsername(String username){
-    this.username = username;
-  }
-
 }
