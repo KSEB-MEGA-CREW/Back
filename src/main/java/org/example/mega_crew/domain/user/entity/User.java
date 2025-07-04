@@ -13,19 +13,17 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "members")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 @Builder
-@EntityListeners(AuditingEntityListener.class)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class User extends BaseEntity implements UserDetails {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Column(unique = true, nullable = false)
-  private String email; // 우선 email nullable = false
+  private String email;
 
   private String password;
 
@@ -33,46 +31,40 @@ public class User extends BaseEntity implements UserDetails {
   private String username;
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private UserRole role; // 일반 사용자와 관리자 구별
+  @Builder.Default
+  private UserRole role = UserRole.USER; // 기본값 설정
 
   @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private AuthProvider authProvider;
+  @Builder.Default
+  private AuthProvider authProvider = AuthProvider.LOCAL; // 기본값 설정
 
   private String providerId;
-
-  @Builder
-  public User(String email, String password, String username, UserRole role,
-              AuthProvider authProvider, String providerId){
-    this.email = email;
-    this.password = password;
-    this.username = username;
-    this.role = (role != null ? role : UserRole.USER);
-    this.authProvider = (authProvider != null ? authProvider : AuthProvider.LOCAL);
-    this.providerId = providerId;
-  }
 
   public void updateUsername(String username){
     this.username = username;
   }
-
 
   // OAuth2 사용자 정보 업데이트
   public void updateOAuth2Info(String username) {
     this.username = username;
   }
 
-  // UserDetails 구현
+  // UserDetails 구현 메서드들...
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities(){
     return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
   }
 
   @Override
+  public String getPassword(){
+    return password;
+  }
+
+  @Override
   public String getUsername(){
     return username;
   }
+
   @Override
   public boolean isAccountNonExpired() {
     return true;
@@ -84,7 +76,7 @@ public class User extends BaseEntity implements UserDetails {
   }
 
   @Override
-  public boolean isEnabled() { // 일단 true return -> 나중에 user의 활동 상태를 확인 가능한 로직 추가하기
+  public boolean isEnabled() {
     return true;
   }
 }
