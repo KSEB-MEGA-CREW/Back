@@ -54,7 +54,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
         }
 
         AuthProvider authProvider = AuthProvider.valueOf(registrationId.toUpperCase());
-        Optional<User> userOptional = userRepository.findByProviderAndProviderId(authProvider, oAuth2UserInfo.getId());
+        Optional<User> userOptional = userRepository.findByAuthProviderAndProviderId(authProvider, oAuth2UserInfo.getId());
 
         User user;
         if(userOptional.isPresent()){
