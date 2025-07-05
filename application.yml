@@ -38,11 +38,10 @@ spring:
   # JPA settings
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:update}
+      ddl-auto: none
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
 
 jwt:
   secret: ${JWT_SECRET}
-  access-token-expiration: 3600000 # 1 hour
-  refresh-token-expiration: 1209600000 # 14 days
+  expiration: 3600000 # 1 hour
