@@ -42,6 +42,7 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
 
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: 3600000 # 1 hour
+  # JWT settings
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: 3600000 # 1 hour
