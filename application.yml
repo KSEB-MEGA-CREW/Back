@@ -5,8 +5,14 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: alpha
     tags-sorter: alpha
+server:
+  port: 8080
+
+app:
+  base-url: ${BASE_URL:http://localhost:8080}
 
 spring:
+  # OAuth2 settings
   security:
     oauth2:
       client:
@@ -14,9 +20,9 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET} # 필요하면 redirect-uri 변경하기
-            redirect-uri: "{baseUrl}/oauth2/callback/{registrationId}"
-            scope:
-              - email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope: email
+
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME:root}
@@ -29,15 +35,12 @@ spring:
       connection-timeout: 20000
       idle-timeout: 300000
 
+  # JPA settings
   jpa:
     hibernate:
       ddl-auto: ${DDL_AUTO:update}
-
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
-
-  server:
-    port: 8080
 
 jwt:
   secret: ${JWT_SECRET}
