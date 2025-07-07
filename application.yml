@@ -11,6 +11,11 @@ server:
 app:
   base-url: ${BASE_URL:http://localhost:8080}
 
+# JWT settings
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyForJwtTokenGenerationAndValidation12345678901234567890}
+  expiration: ${JWT_EXPIRATION:3600000} # 1 hour 기본 값 추가
+
 spring:
   # OAuth2 settings
   security:
@@ -41,7 +46,3 @@ spring:
       ddl-auto: none
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
-  # JWT settings
-  jwt:
-    secret: ${JWT_SECRET}
-    expiration: 3600000 # 1 hour

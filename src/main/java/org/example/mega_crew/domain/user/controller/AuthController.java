@@ -70,7 +70,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @GetMapping("/oauth2/failuer")
+    @GetMapping("/oauth2/failure")
     public ResponseEntity<ApiResponse<Map<String,Object>>> oauth2Failure(){
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error("소셜 로그인에 실패했습니다."));

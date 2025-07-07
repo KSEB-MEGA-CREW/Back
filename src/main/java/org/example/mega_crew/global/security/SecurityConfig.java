@@ -17,25 +17,33 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final OAuth2UserService oauth2Service;
+    private final OAuth2UserService oAuth2UserService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
+        http.authorizeHttpRequests(auth -> auth
+                        // Swagger 관련 경로 허용
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+                        // 기존 허용 경로
                         .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                        // WebSocket 경로 허용 (필요시)
+                        .requestMatchers("/video-stream/**", "/websocket/**").permitAll()
+                        // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(oauth2Service)
+                                .userService(oAuth2UserService)
                         )
                         .defaultSuccessUrl("/api/auth/oauth2/success")
                         .failureUrl("/api/auth/oauth2/failure")
                 );
-
         return http.build();
     }
 
