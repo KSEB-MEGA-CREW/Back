@@ -27,8 +27,12 @@ public class User extends BaseEntity implements UserDetails {
 
   private String password;
 
-  @Column(nullable = false)
+  @Column(unique = true, nullable = false)
   private String username;
+
+  @Enumerated(EnumType.STRING)
+  @Builder.Default
+  private HearingStatus hearingStatus = HearingStatus.NORMAL;
 
   @Enumerated(EnumType.STRING)
   @Builder.Default
