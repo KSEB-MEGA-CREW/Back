@@ -32,8 +32,18 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET} # 필요하면 redirect-uri 변경하기
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            scope: email
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google"
+            scope:
+              - email
+              - profile
+            authorization-grant-type: authorization_code
+            client-name: Google
+          provider:
+            google:
+              authorization-uri: https://accounts.google.com/o/oauth2/auth
+              token-uri: https://oauth2.googleapis.com/token
+              user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+              user-name-attribute: sub
 
   datasource:
     url: ${DB_URL}
@@ -50,6 +60,6 @@ spring:
   # JPA settings
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create # 개발 중 schema 변경이 잦으므로 create -> 이후 데이터를 보존하려면 update로 변경하기
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
