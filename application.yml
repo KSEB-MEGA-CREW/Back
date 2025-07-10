@@ -50,6 +50,6 @@ spring:
   # JPA settings
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
