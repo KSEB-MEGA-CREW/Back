@@ -16,19 +16,20 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
-
+    
+    // SecurityConfig의 설정이 더 우선순위가 높고 CORS 설정이 중복되므로, 내용을 동일하게 변경
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOriginPatterns(
-                        "http://localhost:3000",    // React 앱
-                        "http://localhost:8080",    // 같은 서버 (Swagger UI)
-                        "http://127.0.0.1:8080",    // 로컬 IP
-                        "http://127.0.0.1:3000"     // 로컬 IP React
+                        "http://localhost:3000",
+                        "http://localhost:8080",
+                        "http://127.0.0.1:8080",
+                        "http://127.0.0.1:3000"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true)
-                .maxAge(3600); // preflight 요청 캐시 시간
+                .maxAge(3600);
     }
 }
