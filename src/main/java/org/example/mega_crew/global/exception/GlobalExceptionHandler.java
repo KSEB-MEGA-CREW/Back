@@ -60,4 +60,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("서버 내부 오류가 발생했습니다."));
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception e) {
+        log.error("Unexpected error occurred: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("서버 오류 발생 : "+e.getMessage()));
+    }
+
+
+
 }

@@ -17,6 +17,9 @@ server:
 
 app:
   base-url: ${BASE_URL:http://localhost:8080}
+  webcam:
+    storage:
+      path: ./uploads/webcam  # test용 로컬 저장 경로
 
 # JWT settings
 jwt:
@@ -63,3 +66,8 @@ spring:
       ddl-auto: create # 개발 중 schema 변경이 잦으므로 create -> 이후 데이터를 보존하려면 update로 변경하기
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
+
+  servlet:
+    multipart:
+      max-file-size: 100MB # 일단은 100MB 제한
+      max-request-size: 100MB

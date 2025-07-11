@@ -18,6 +18,7 @@ public class JwtUtil {
     private final Key key;
     private final long tokenValidityMilliseconds;
 
+
     public JwtUtil(@Value("${jwt.secret}") String secret,
                    @Value("${jwt.expiration}") long tokenValidityMilliseconds){
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
@@ -78,6 +79,16 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    // JET 토큰에서 사용자명 추출
+    public String getUsernameFromToken(String token){
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
     }
 
 }
