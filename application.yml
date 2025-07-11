@@ -27,6 +27,8 @@ jwt:
   expiration: ${JWT_EXPIRATION:3600000} # 1 hour 기본 값 추가
 
 spring:
+  main:
+    allow-circular-references: true
   # OAuth2 settings
   security:
     oauth2:
