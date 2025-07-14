@@ -73,3 +73,8 @@ spring:
     multipart:
       max-file-size: 100MB # 일단은 100MB 제한
       max-request-size: 100MB
+
+ai:
+  server:
+    base-url: ${AI_SERVER_URL:http://localhost:5000}
+    timeout: 30000
