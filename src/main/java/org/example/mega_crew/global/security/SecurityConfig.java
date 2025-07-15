@@ -49,12 +49,18 @@ public class SecurityConfig {
                                 // 인증 관련 경로
                                 .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
 
+
+                        // WebSocket 경로 허용 (필요시)
+                        .requestMatchers("/video-stream/**", "/websocket/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+
                                 // WebSocket 및 웹캠 경로 (개발 단계에서는 permitAll, 추후 authenticated로 변경)
                                 .requestMatchers("/ws-webcam/**", "/websocket/**").permitAll()
                                 .requestMatchers("/api/webcam/**").permitAll() // 추후 .authenticated()로 변경
                                 .requestMatchers("/api/webcam/**").permitAll() // webcam test용
                                 // 정적 리소스
                                 .requestMatchers("/", "/error", "/favicon.ico", "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg", "/**").permitAll()
+
 
                                 // 나머지는 인증 필요
                                 .anyRequest().authenticated()
