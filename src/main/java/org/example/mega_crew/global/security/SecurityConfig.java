@@ -54,6 +54,7 @@ public class SecurityConfig {
 
                         // WebSocket 경로 허용 (필요시)
                         .requestMatchers("/video-stream/**", "/websocket/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
 
                         // 정적 리소스 허용
                         .requestMatchers("/", "/error", "/favicon.ico").permitAll()

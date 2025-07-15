@@ -1,5 +1,6 @@
 package org.example.mega_crew.global.websocket.handler;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;

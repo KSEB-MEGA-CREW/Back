@@ -1,6 +1,7 @@
 package org.example.mega_crew.global.websocket.config;
 
 import org.example.mega_crew.global.websocket.handler.MyWebSocketHandler;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.*;
 
