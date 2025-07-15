@@ -17,6 +17,9 @@ server:
 
 app:
   base-url: ${BASE_URL:http://localhost:8080}
+  webcam:
+    storage:
+      path: ./uploads/webcam  # test용 로컬 저장 경로
 
 # JWT settings
 jwt:
@@ -24,6 +27,8 @@ jwt:
   expiration: ${JWT_EXPIRATION:3600000} # 1 hour 기본 값 추가
 
 spring:
+  main:
+    allow-circular-references: true
   # OAuth2 settings
   security:
     oauth2:
@@ -69,7 +74,3 @@ spring:
       max-file-size: 100MB # 일단은 100MB 제한
       max-request-size: 100MB
 
-  ai:
-    server:
-      base-url: ${AI_SERVER_URL:http://localhost:5000}
-      timeout: 30000
