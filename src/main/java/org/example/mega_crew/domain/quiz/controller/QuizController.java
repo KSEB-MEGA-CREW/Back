@@ -1,7 +1,6 @@
 package org.example.mega_crew.domain.quiz.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.example.mega_crew.domain.quiz.dto.request.QuizRequestDto;
 import org.example.mega_crew.domain.quiz.dto.response.QuizResponseDto;
 import org.example.mega_crew.domain.quiz.service.QuizService;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +16,8 @@ public class QuizController {
   }
 
   @PostMapping
-  public List<QuizResponseDto> getQuiz(@RequestBody QuizRequestDto request) {
-    System.out.println("=== QuizController.getQuiz() 호출됨 ===");
-    return quizService.generateQuiz(request.getCount());
+  public List<QuizResponseDto> getQuiz() {
+    return quizService.generateQuiz(5); // quiz 5개 생성
   }
 
   // 디버깅용 GET 매핑
