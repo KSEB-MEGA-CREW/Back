@@ -16,11 +16,12 @@ public class QuizService {
     this.quizApiClient = quizApiClient;
   }
 
+  // 문제 개수 5개로 선지 생성
   public List<QuizResponseDto> generateQuiz(int count){
-    System.out.println("=== QuizService.generateQuiz() 호출됨1 ===");
+    System.out.println("=== QuizService.generateQuiz() 호출됨 ===");
     List<Map<String, String>> wordList = Collections.emptyList();
     try {
-      wordList = quizApiClient.fetchSignWords(count * 4); // category 없이!
+      wordList = quizApiClient.fetchSignWords(count * 4);
     } catch (Exception e) {
       e.printStackTrace();
       return Collections.emptyList();
@@ -28,6 +29,7 @@ public class QuizService {
     Collections.shuffle(wordList);
     List<QuizResponseDto> quizList = new ArrayList<>();
 
+    // 선지중에 정답과 오답 생성
     for (int i = 0; i < count; i++) {
       Map<String, String> answer = wordList.get(i);
       Set<String> used = new HashSet<>();
