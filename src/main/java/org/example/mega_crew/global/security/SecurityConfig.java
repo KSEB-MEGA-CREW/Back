@@ -86,7 +86,7 @@ public class SecurityConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
         corsConfiguration.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173",    // React 개발 서버
+                "http://localhost:3000",    // React 개발 서버
                 "http://localhost:8080",    // Spring Boot 서버
                 "http://127.0.0.1:8080",    // 로컬 IP
                 "http://127.0.0.1:3000"   // 로컬 IP React
