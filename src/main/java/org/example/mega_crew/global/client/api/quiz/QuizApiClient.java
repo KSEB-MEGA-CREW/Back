@@ -12,7 +12,8 @@ import java.util.*;
 @Component
 public class QuizApiClient {
 
-  private static final String API_URL = "http://api.kcisa.kr/openapi/service/rest/meta13/getCTE01701";
+  @Value("${sign.api.url}")
+  private String API_URL;
 
   @Value("${sign.api.key}")
   private String apiKey;

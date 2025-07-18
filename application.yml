@@ -78,6 +78,7 @@ spring:
 sign:
   api:
     key: ${SL_API_KEY}
+    url: ${SL_API_URL}
 
 ai:
   server:
