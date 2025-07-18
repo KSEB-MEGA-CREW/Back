@@ -17,7 +17,8 @@ public class QuizController {
 
   @PostMapping
   public List<QuizResponseDto> getQuiz() {
-    return quizService.generateQuiz(5); // quiz 5개 생성
+    final int QuizCount = 5; // magic number 방지, 변수로 관리
+    return quizService.generateQuiz(QuizCount); // quiz 5개 생성
   }
 
   // 디버깅용 GET 매핑
