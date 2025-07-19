@@ -2,6 +2,7 @@ package org.example.mega_crew.global.security;
 
 import lombok.RequiredArgsConstructor;
 import org.example.mega_crew.domain.user.service.OAuth2UserService;
+import org.example.mega_crew.global.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,6 +26,7 @@ import java.util.List;
 public class SecurityConfig {
     private final OAuth2UserService oAuth2UserService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -49,21 +51,17 @@ public class SecurityConfig {
                         // 인증 관련 경로 - OPTIONS 메소드 명시적 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
-
                         // WebSocket 경로
                         .requestMatchers("/video-stream/**", "/websocket/**", "/ws/**").permitAll()
                         .requestMatchers("/ws-webcam/**", "/api/webcam/**").permitAll()
-
                         // 정적 리소스
                         .requestMatchers("/", "/error", "/favicon.ico", "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg").permitAll()
 
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(oAuth2UserService))
-                        .defaultSuccessUrl("/api/auth/oauth2/success", true)
-                        .failureUrl("/api/auth/oauth2/failure")
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler) // 기존 -> SuccessHandler로 연결
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
