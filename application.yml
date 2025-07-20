@@ -16,46 +16,47 @@ server:
   port: 8080
 
 app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
   base-url: ${BASE_URL:http://localhost:8080}
-  webcam:
-    storage:
-      path: ./uploads/webcam  # test용 로컬 저장 경로
 
 # JWT settings
 jwt:
   secret: ${JWT_SECRET:mySecretKeyForJwtTokenGenerationAndValidation12345678901234567890}
-  expiration: ${JWT_EXPIRATION:3600000} # 1 hour 기본 값 추가
+  expiration: ${JWT_EXPIRATION:3600000} # 1 hour
 
 spring:
   main:
     allow-circular-references: true
-  # OAuth2 settings
+
+  # OAuth2 settings (Google only)
   security:
     oauth2:
       client:
         registration:
           google:
             client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET} # 필요하면 redirect-uri 변경하기
-            redirect-uri: "http://localhost:8080/login/oauth2/code/google"
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
               - email
               - profile
+            # Spring Security 기본 패턴 사용 (SuccessHandler에서 처리)
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
             client-name: Google
-          provider:
-            google:
-              authorization-uri: https://accounts.google.com/o/oauth2/auth
-              token-uri: https://oauth2.googleapis.com/token
-              user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
-              user-name-attribute: sub
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
 
+  # Database settings
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:password}
     driver-class-name: com.mysql.cj.jdbc.Driver
-
     hikari:
       maximum-pool-size: ${DB_POOL_SIZE:20}
       minimum-idle: 5
@@ -65,21 +66,47 @@ spring:
   # JPA settings
   jpa:
     hibernate:
-      ddl-auto: create # 개발 중 schema 변경이 잦으므로 create -> 이후 데이터를 보존하려면 update로 변경하기
+      ddl-auto: ${DDL_AUTO:create} # 개발: create, 운영: validate
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
 
+  # File upload settings
   servlet:
     multipart:
-      max-file-size: 100MB # 일단은 100MB 제한
+      max-file-size: 100MB
       max-request-size: 100MB
 
-# SignLanguage data API
+# CORS settings (SPA 지원)
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080}
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
+  allowed-headers: "*"
+  allow-credentials: true
+  max-age: 3600
+
+# SignLanguage API settings
 sign:
   api:
     key: ${SL_API_KEY}
     url: ${SL_API_URL}
 
+# AI server settings
 ai:
   server:
-    base-url: http://localhost:8080
+    base-url: ${AI_SERVER_URL:http://localhost:8080}
+
+# Logging settings
+logging:
+  level:
+    org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
+    org.springframework.security.oauth2: ${LOG_LEVEL_OAUTH2:DEBUG}
+    org.example.mega_crew: ${LOG_LEVEL_APP:DEBUG}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL:DEBUG}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_PARAMS:TRACE}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

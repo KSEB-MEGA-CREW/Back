@@ -25,9 +25,13 @@ public class UserSignupRequest {
     @Size(min = 2, max = 20, message = "닉네임은 2자 이상 20자 이하여야 합니다.")
     private String username;
 
-    public UserSignupRequest(String email, String password, String username){
+    @NotBlank(message = "청각상태는 필수입니다.")
+    private String hearing;
+
+    public UserSignupRequest(String email, String password, String username, String hearing){
         this.email = email;
         this.password = password;
         this.username = username;
+        this.hearing = hearing;
     }
 }

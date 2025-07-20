@@ -2,7 +2,9 @@ package org.example.mega_crew.global.security;
 
 import lombok.RequiredArgsConstructor;
 import org.example.mega_crew.domain.user.service.OAuth2UserService;
+import org.example.mega_crew.global.security.oauth2.OAuth2AuthenticationFailureHandler;
 import org.example.mega_crew.global.security.oauth2.OAuth2AuthenticationSuccessHandler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -11,12 +13,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -24,46 +29,112 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final OAuth2UserService oAuth2UserService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+
+    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+    private String allowedOrigins;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                // CORS 설정
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // CSRF 비활성화 (JWT 사용)
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // 세션 정책 설정
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
+                // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        // Swagger 및 API 문서
+                        // OPTIONS 요청 허용 (CORS preflight)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // API 문서 및 Swagger
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**",
-                                "/api-docs/**",
-                                "/api/quiz/**"
+                                "/webjars/**"
                         ).permitAll()
 
-                        // 인증 관련 경로 - OPTIONS 메소드 명시적 허용
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
-                        // WebSocket 경로
-                        .requestMatchers("/video-stream/**", "/websocket/**", "/ws/**").permitAll()
-                        .requestMatchers("/ws-webcam/**", "/api/webcam/**").permitAll()
-                        // 정적 리소스
-                        .requestMatchers("/", "/error", "/favicon.ico", "/**/*.css", "/**/*.js", "/**/*.png", "/**/*.jpg", "/**/*.jpeg").permitAll()
+                        // 인증 관련 경로
+                        .requestMatchers(
+                                "/api/auth/signup",
+                                "/api/auth/login",
+                                "/api/auth/oauth2/**",
+                                "/login/oauth2/**",
+                                "/oauth2/**"
+                        ).permitAll()
 
+                        // 퀴즈 관련 (인증 불필요한 경우)
+                        .requestMatchers("/api/quiz/public/**").permitAll()
+
+                        // WebSocket 관련
+                        .requestMatchers(
+                                "/ws/**",
+                                "/websocket/**",
+                                "/api/webcam/public/**"
+                        ).permitAll()
+
+                        // 정적 리소스
+                        .requestMatchers(
+                                "/",
+                                "/error",
+                                "/favicon.ico",
+                                "/**/*.css",
+                                "/**/*.js",
+                                "/**/*.png",
+                                "/**/*.jpg",
+                                "/**/*.jpeg",
+                                "/**/*.gif",
+                                "/**/*.svg"
+                        ).permitAll()
+
+                        // 헬스체크 (운영 환경용)
+                        .requestMatchers("/actuator/health").permitAll()
+
+                        // 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
+
+                // OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
-                        .successHandler(oAuth2AuthenticationSuccessHandler) // 기존 -> SuccessHandler로 연결
+                        .loginPage("/oauth2/authorization/google") // 로그인 페이지 설정
+                        .userInfoEndpoint(userInfo ->
+                                userInfo.userService(oAuth2UserService)
+                        )
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
+                )
+
+                // 예외 처리
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(401);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"error\":\"Unauthorized\",\"message\":\"인증이 필요합니다.\"}"
+                            );
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.setStatus(403);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write(
+                                    "{\"error\":\"Forbidden\",\"message\":\"접근 권한이 없습니다.\"}"
+                            );
+                        })
                 );
 
+        // JWT 필터 추가
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -73,23 +144,31 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
-        corsConfiguration.setAllowedOriginPatterns(List.of(
-                "http://localhost:3000",
-                "http://localhost:8080",
-                "http://127.0.0.1:8080",
-                "http://127.0.0.1:3000"
+        // 환경변수에서 허용된 origins 가져오기
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        corsConfiguration.setAllowedOriginPatterns(origins);
+
+        // 허용된 헤더
+        corsConfiguration.setAllowedHeaders(List.of("*"));
+
+        // 허용된 HTTP 메서드
+        corsConfiguration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
         ));
 
-        corsConfiguration.setAllowedHeaders(List.of("*"));
-        corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        // 자격 증명 허용
         corsConfiguration.setAllowCredentials(true);
+
+        // preflight 캐시 시간
         corsConfiguration.setMaxAge(3600L);
 
-        // 노출할 헤더 설정 추가
+        // 클라이언트에 노출할 헤더
         corsConfiguration.setExposedHeaders(List.of(
                 "Authorization",
                 "Cache-Control",
                 "Content-Type",
+                "Content-Length",
+                "X-Total-Count",
                 "Access-Control-Allow-Origin",
                 "Access-Control-Allow-Headers"
         ));

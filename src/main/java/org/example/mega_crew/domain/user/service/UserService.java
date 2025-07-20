@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
 import org.example.mega_crew.domain.user.dto.response.UserResponse;
+import org.example.mega_crew.domain.user.entity.HearingStatus;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.domain.user.entity.AuthProvider;
 import org.example.mega_crew.domain.user.entity.UserRole;
@@ -40,11 +41,18 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
             throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
         }
 
+        // HearingStatus 처리 추가
+        HearingStatus hearingStatus = HearingStatus.NORMAL;
+        if("DEAF".equals(request.getHearing())){
+            hearingStatus = HearingStatus.DEAF;
+        }
+
         // 일반회원 회원가입
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .username(request.getUsername())
+                .hearingStatus(hearingStatus)
                 .role(UserRole.USER)
                 .authProvider(AuthProvider.LOCAL)
                 .build();
