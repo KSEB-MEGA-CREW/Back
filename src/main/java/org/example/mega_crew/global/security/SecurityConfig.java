@@ -44,19 +44,15 @@ public class SecurityConfig {
                 // CORS 설정
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // CSRF 비활성화 (JWT 사용)
+                //CSRF 비활성화 (JWT 사용)
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // 세션 정책 설정
+                //세션 정책 설정
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
                 // 요청 권한 설정
                 .authorizeHttpRequests(auth -> auth
-                        // OPTIONS 요청 허용 (CORS preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
                         // API 문서 및 Swagger
                         .requestMatchers(
                                 "/swagger-ui/**",
@@ -75,7 +71,7 @@ public class SecurityConfig {
                                 "/oauth2/**"
                         ).permitAll()
 
-                        // 퀴즈 관련 (인증 불필요한 경우)
+                        // 퀴즈 관련 (개발 중에는 permitAll)
                         .requestMatchers("/api/quiz/public/**").permitAll()
 
                         // WebSocket 관련
@@ -85,11 +81,15 @@ public class SecurityConfig {
                                 "/api/webcam/public/**"
                         ).permitAll()
 
-                        // 정적 리소스
+                        // 정적 리소스 - 수정된 부분
                         .requestMatchers(
                                 "/",
                                 "/error",
-                                "/favicon.ico",
+                                "/favicon.ico"
+                        ).permitAll()
+
+                        // 정적 파일들 - 별도로 분리
+                        .requestMatchers(
                                 "/**/*.css",
                                 "/**/*.js",
                                 "/**/*.png",
@@ -104,16 +104,6 @@ public class SecurityConfig {
 
                         // 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated()
-                )
-
-                // OAuth2 로그인 설정
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/authorization/google") // 로그인 페이지 설정
-                        .userInfoEndpoint(userInfo ->
-                                userInfo.userService(oAuth2UserService)
-                        )
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
-                        .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
 
                 // 예외 처리
