@@ -52,6 +52,12 @@ public class User extends BaseEntity implements UserDetails {
     this.username = username;
   }
 
+  public void linkOAuth2Account(AuthProvider authProvider, String providerId, String username) {
+    this.authProvider = authProvider;
+    this.providerId = providerId;
+    this.username = username;
+  }
+
   // UserDetails 구현 메서드들...
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities(){

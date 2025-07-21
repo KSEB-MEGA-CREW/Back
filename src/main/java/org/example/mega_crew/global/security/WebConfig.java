@@ -16,8 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
-    
-    // SecurityConfig의 설정이 더 우선순위가 높고 CORS 설정이 중복되므로, 내용을 동일하게 변경
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
