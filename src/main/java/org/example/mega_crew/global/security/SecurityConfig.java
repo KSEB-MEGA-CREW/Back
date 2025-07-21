@@ -13,8 +13,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -44,66 +42,59 @@ public class SecurityConfig {
                 // CORS 설정
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                //CSRF 비활성화 (JWT 사용)
+                // CSRF 비활성화 (JWT 사용)
                 .csrf(AbstractHttpConfigurer::disable)
-                //세션 정책 설정
+
+                // 세션 정책 설정
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // 요청 권한 설정
+
+                // 요청 권한 설정 - 단순화된 패턴
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // API 문서 및 Swagger
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
-                        ).permitAll()
+                        // OPTIONS 요청 허용 (CORS preflight)
+                        .requestMatchers(HttpMethod.OPTIONS).permitAll()
 
-                        // 인증 관련 경로
-                        .requestMatchers(
-                                "/api/auth/signup",
-                                "/api/auth/login",
-                                "/api/auth/oauth2/**",
-                                "/login/oauth2/**",
-                                "/oauth2/**"
-                        ).permitAll()
+                        // API 문서 및 Swagger - 단순화
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
 
-                        // 퀴즈 관련 (개발 중에는 permitAll)
+                        // 인증 관련 경로 - 단순화
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/login/oauth2/**").permitAll()
+                        .requestMatchers("/oauth2/**").permitAll()
+
+                        // 퀴즈 관련 (인증 불필요한 경우)
                         .requestMatchers("/api/quiz/public/**").permitAll()
 
-                        // WebSocket 관련
-                        .requestMatchers(
-                                "/ws/**",
-                                "/websocket/**",
-                                "/api/webcam/public/**"
-                        ).permitAll()
+                        // WebSocket 관련 - 단순화
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/websocket/**").permitAll()
+                        .requestMatchers("/api/webcam/public/**").permitAll()
 
-                        // 정적 리소스 - 수정된 부분
-                        .requestMatchers(
-                                "/",
-                                "/error",
-                                "/favicon.ico"
-                        ).permitAll()
-
-                        // 정적 파일들 - 별도로 분리
-                        .requestMatchers(
-                                "/**/*.css",
-                                "/**/*.js",
-                                "/**/*.png",
-                                "/**/*.jpg",
-                                "/**/*.jpeg",
-                                "/**/*.gif",
-                                "/**/*.svg"
-                        ).permitAll()
+                        // 기본 경로들
+                        .requestMatchers("/").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
 
                         // 헬스체크 (운영 환경용)
                         .requestMatchers("/actuator/health").permitAll()
 
                         // 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated()
+                )
+
+                // OAuth2 로그인 설정
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/oauth2/authorization/google") // 로그인 페이지 설정
+                        .userInfoEndpoint(userInfo ->
+                                userInfo.userService(oAuth2UserService)
+                        )
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
                 )
 
                 // 예외 처리
@@ -164,7 +155,7 @@ public class SecurityConfig {
         ));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfiguration);
+        source.registerCorsConfiguration("/**", corsConfiguration); // 수정된 부분
         return source;
     }
 }
