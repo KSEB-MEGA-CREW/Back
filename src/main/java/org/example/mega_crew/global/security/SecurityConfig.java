@@ -7,6 +7,7 @@ import org.example.mega_crew.global.security.oauth2.OAuth2AuthenticationSuccessH
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,6 +26,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableJpaAuditing // BaseEntity의 createdDate, modifiedDate 자동 기록을 위한 annotation
 @RequiredArgsConstructor
 public class SecurityConfig {
 

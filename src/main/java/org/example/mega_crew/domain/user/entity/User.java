@@ -75,7 +75,7 @@ public class User extends BaseEntity implements UserDetails {
   }
 
   @Override
-  public boolean isAccountNonExpired() {
+  public boolean isAccountNonExpired() { // 검증 logic 추후 구현하기
     return true;
   }
 
@@ -88,4 +88,5 @@ public class User extends BaseEntity implements UserDetails {
   public boolean isEnabled() {
     return true;
   }
+
 }
