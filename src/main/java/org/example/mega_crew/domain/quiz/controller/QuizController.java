@@ -24,7 +24,6 @@ public class QuizController {
   // 디버깅용 GET 매핑
   @GetMapping("/test")
   public String test() {
-    System.out.println("=== GET /api/quiz/test 호출됨 ===");
     return "ok";
   }
 }
