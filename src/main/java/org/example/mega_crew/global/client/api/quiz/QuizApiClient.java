@@ -19,16 +19,25 @@ public class QuizApiClient {
   private String apiKey;
 
   public List<Map<String, String>> fetchSignWords(int num) throws Exception {
-    System.out.println("=== QuizApiClient.fetchSignWords() 호출됨 ===");
     RestTemplate restTemplate = new RestTemplate();
+
+    // 전체 페이지 계산
+    int totalCount = 3619;
+    int numOfRows = 20;
+    int totalPages = (int) Math.ceil((double) totalCount / numOfRows);
+
+    // 범위 내 랜덤 pageNo 선택
+    Random rand = new Random();
+    int pageNo = rand.nextInt(totalPages) + 1; // 1부터 181까지
+
     String url = API_URL
         + "?serviceKey=" + apiKey
         + "&numOfRows=" + num
-        + "&pageNo=1"
+        + "&pageNo=" + pageNo
         + "&keyword=";
 
     System.out.println("=== QuizApiClient 요청 URL ===");
-    System.out.println(url);
+    System.out.println(url + " (pageNo=" + pageNo + ")");
     System.out.println("API KEY: " + apiKey);
 
     ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
@@ -37,16 +46,13 @@ public class QuizApiClient {
     if (response.getStatusCode() == HttpStatus.OK) {
       XmlMapper xmlMapper = new XmlMapper();
       JsonNode root = xmlMapper.readTree(response.getBody());
-      // 실제 구조: <response><body><items><item>...
       JsonNode itemsNode = root.path("body").path("items").path("item");
 
-      // 여러 개일 때 (배열)
       if (itemsNode.isArray()) {
         for (JsonNode item : itemsNode) {
           result.add(parseItem(item));
         }
       }
-      // 한 개만 있을 때 (객체)
       else if (itemsNode.isObject()) {
         result.add(parseItem(itemsNode));
       } else {
@@ -67,7 +73,7 @@ public class QuizApiClient {
     return map;
   }
 
-  // 필드 누락/빈 값 대응 함수
+  // 필드 누락
   private String getSafeText(JsonNode node, String field) {
     JsonNode valueNode = node.get(field);
     if (valueNode == null || valueNode.isNull()) return "";
