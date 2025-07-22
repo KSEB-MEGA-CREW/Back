@@ -70,7 +70,7 @@ public class SecurityConfig {
                         .requestMatchers("/oauth2/**").permitAll()
 
                         // 퀴즈 관련 (인증 불필요한 경우)
-                        .requestMatchers("/api/quiz/public/**").permitAll()
+                        .requestMatchers("/api/quiz/**").permitAll()
 
                         // WebSocket 관련 - 단순화
                         .requestMatchers("/ws/**").permitAll()
