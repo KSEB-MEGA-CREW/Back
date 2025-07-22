@@ -1,7 +1,12 @@
 package org.example.mega_crew.domain.quiz.service;
 
 import org.example.mega_crew.domain.quiz.dto.choice.ChoiceDto;
+import org.example.mega_crew.domain.quiz.dto.request.QuizRecordSaveRequestDto;
 import org.example.mega_crew.domain.quiz.dto.response.QuizResponseDto;
+import org.example.mega_crew.domain.quiz.entity.QuizRecord;
+import org.example.mega_crew.domain.quiz.repository.QuizRecordRepository;
+import org.example.mega_crew.domain.user.entity.User;
+import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.example.mega_crew.global.client.api.quiz.QuizApiClient;
 import org.springframework.stereotype.Service;
 
@@ -11,11 +16,17 @@ import java.util.stream.Collectors;
 // 퀴즈 생성
 @Service
 public class QuizService {
-  private final QuizApiClient quizApiClient;
 
-  public QuizService(QuizApiClient quizApiClient) {
+  private final QuizApiClient quizApiClient;
+  private final QuizRecordRepository quizRecordRepository;
+  private final UserRepository userRepository;
+
+  public QuizService(QuizApiClient quizApiClient, QuizRecordRepository quizRecordRepository, UserRepository userRepository) {
     this.quizApiClient = quizApiClient;
+    this.quizRecordRepository = quizRecordRepository;
+    this.userRepository = userRepository;
   }
+
 
   // 문제 개수 5개로 선지 생성
   public List<QuizResponseDto> generateQuiz(int count) {
@@ -63,5 +74,14 @@ public class QuizService {
     }
     return quizList;
   }
+
+  // quiz 맞춘 개수 저장
+  public void saveQuizRecord(QuizRecordSaveRequestDto dto) {
+    User user = userRepository.findById(dto.getUserId())
+      .orElseThrow(() -> new IllegalArgumentException("사용자 없음: " + dto.getUserId()));
+    QuizRecord record = new QuizRecord(dto.getCorrectCount(), user);
+      quizRecordRepository.save(record);
+    }
 }
+
 
