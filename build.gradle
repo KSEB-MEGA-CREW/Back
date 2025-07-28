@@ -66,6 +66,10 @@ dependencies {
 
     // XML 파싱 추가
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml'
+
+    // Redis 관련 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // lettuce -> redis 연결 풀 최적화, JSON 직렬화 => 기본 포함
 }
 
 
