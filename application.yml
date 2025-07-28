@@ -1,3 +1,118 @@
+# =============================================================================
+# SERVER CONFIGURATION
+# =============================================================================
+server:
+  port: 8080
+
+# =============================================================================
+# APPLICATION CONFIGURATION
+# =============================================================================
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:3000}
+  base-url: ${BASE_URL:http://localhost:8080}
+
+# =============================================================================
+# SECURITY & JWT CONFIGURATION
+# =============================================================================
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyForJwtTokenGenerationAndValidation12345678901234567890}
+  expiration: ${JWT_EXPIRATION:3600000} # 1 hour
+
+spring:
+  # ===========================================================================
+  # MAIN CONFIGURATION
+  # ===========================================================================
+  main:
+    allow-circular-references: true
+
+  # ===========================================================================
+  # OAUTH2 CONFIGURATION
+  # ===========================================================================
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-name: Google
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
+
+  # ===========================================================================
+  # DATABASE CONFIGURATION
+  # ===========================================================================
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+
+  # ===========================================================================
+  # JPA CONFIGURATION
+  # ===========================================================================
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:create} # 개발: create, 운영: validate
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    show-sql: ${SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+
+  # ===========================================================================
+  # REDIS CONFIGURATION (수정된 부분)
+  # ===========================================================================
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6370} # MySQL과 충돌 방지
+      password: ${REDIS_PASSWORD:}
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  # ===========================================================================
+  # SESSION CONFIGURATION (수정된 부분)
+  # ===========================================================================
+  session:
+    store-type: redis
+    timeout: 30m
+    redis:
+      namespace: spring:session
+
+  # ===========================================================================
+  # FILE UPLOAD CONFIGURATION
+  # ===========================================================================
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# =============================================================================
+# API DOCUMENTATION CONFIGURATION
+# =============================================================================
 springdoc:
   api-docs:
     enabled: true
@@ -12,92 +127,23 @@ springdoc:
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
 
-server:
-  port: 8080
+# =============================================================================
+# EXTERNAL API CONFIGURATION
+# =============================================================================
+# Sign Language API
+sign:
+  api:
+    key: ${SL_API_KEY}
+    url: ${SL_API_URL}
 
-app:
-  frontend:
-    url: ${FRONTEND_URL:http://localhost:3000}
-  base-url: ${BASE_URL:http://localhost:8080}
+# AI Server
+ai:
+  server:
+    base-url: ${AI_SERVER_URL:http://localhost:8080}
 
-# JWT settings
-jwt:
-  secret: ${JWT_SECRET:mySecretKeyForJwtTokenGenerationAndValidation12345678901234567890}
-  expiration: ${JWT_EXPIRATION:3600000} # 1 hour
-
-spring:
-  main:
-    allow-circular-references: true
-
-  # OAuth2 settings (Google only)
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
-            scope:
-              - email
-              - profile
-            # Spring Security 기본 패턴 사용 (SuccessHandler에서 처리)
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-            authorization-grant-type: authorization_code
-            client-name: Google
-        provider:
-          google:
-            authorization-uri: https://accounts.google.com/o/oauth2/auth
-            token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
-            user-name-attribute: sub
-  redis:
-    host: ${REDIS_HOST:localhost}
-    port: ${REDIS_PORT:6379}
-    password: ${REDIS_PASSWORD:}
-    database: 0
-    timeout: 3000ms
-    lettuce:
-      pool:
-        max-active: 8
-        max-idle: 8
-        min-idle: 0
-        max-wait: -1ms
-# session settings
-session:
-  timeout-minutes: 30
-  cleanup-interval: 5
-
-
-# Database settings
-datasource:
-  url: ${DB_URL}
-  username: ${DB_USERNAME:root}
-  password: ${DB_PASSWORD:password}
-  driver-class-name: com.mysql.cj.jdbc.Driver
-  hikari:
-    maximum-pool-size: ${DB_POOL_SIZE:20}
-    minimum-idle: 5
-    connection-timeout: 20000
-    idle-timeout: 300000
-
-  # JPA settings
-  jpa:
-    hibernate:
-      ddl-auto: ${DDL_AUTO:create} # 개발: create, 운영: validate
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    show-sql: ${SHOW_SQL:false}
-    properties:
-      hibernate:
-        format_sql: true
-        use_sql_comments: true
-
-  # File upload settings
-  servlet:
-    multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
-
-# CORS settings (SPA 지원)
+# =============================================================================
+# CORS CONFIGURATION
+# =============================================================================
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080}
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
@@ -105,18 +151,16 @@ cors:
   allow-credentials: true
   max-age: 3600
 
-# SignLanguage API settings
-sign:
-  api:
-    key: ${SL_API_KEY}
-    url: ${SL_API_URL}
+# =============================================================================
+# CUSTOM SESSION CONFIGURATION
+# =============================================================================
+session:
+  timeout-minutes: 30
+  cleanup-interval: 5
 
-# AI server settings
-ai:
-  server:
-    base-url: ${AI_SERVER_URL:http://localhost:8080}
-
-# Logging settings
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
 logging:
   level:
     org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
