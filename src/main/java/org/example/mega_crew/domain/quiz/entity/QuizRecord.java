@@ -8,6 +8,7 @@ import org.example.mega_crew.global.common.BaseEntity;
 @Entity
 @Getter
 @Builder
+@AllArgsConstructor
 public class QuizRecord extends BaseEntity {
 
    @Id
