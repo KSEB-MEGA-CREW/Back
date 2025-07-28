@@ -38,8 +38,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
     // Database
-    runtimeOnly 'com.h2database:h2'
+//    runtimeOnly 'com.h2database:h2'
     // MySQL 중복 제거 - 하나만 유지
+    // 최신 버전 적용
     runtimeOnly 'mysql:mysql-connector-java:8.0.33'
 
     // Swagger/OpenAPI

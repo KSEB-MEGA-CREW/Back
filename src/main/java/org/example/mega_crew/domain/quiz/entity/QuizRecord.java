@@ -2,13 +2,16 @@ package org.example.mega_crew.domain.quiz.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
 
 @Entity
+@Table(name = "quiz_records")
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class QuizRecord extends BaseEntity {
 
    @Id
@@ -18,10 +21,8 @@ public class QuizRecord extends BaseEntity {
    private int correctCount;
 
    @ManyToOne(fetch = FetchType.LAZY)
-   @JoinColumn(name = "user_id")
+   @JoinColumn(name = "user_id", referencedColumnName = "id")
    private User user;
-
-   public QuizRecord() {}
 
    public QuizRecord(int correctCount, User user) {
       this.correctCount = correctCount;
