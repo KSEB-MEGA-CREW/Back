@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
+@Table(name="users") // 예약어 충돌 방지
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
