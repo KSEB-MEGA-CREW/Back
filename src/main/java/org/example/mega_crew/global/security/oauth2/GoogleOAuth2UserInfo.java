@@ -1,6 +1,5 @@
 package org.example.mega_crew.global.security.oauth2;
 
-
 import java.util.Map;
 
 public class GoogleOAuth2UserInfo extends OAuth2UserInfo {
