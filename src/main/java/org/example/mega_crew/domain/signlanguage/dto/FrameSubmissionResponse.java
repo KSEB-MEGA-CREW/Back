@@ -1,4 +1,4 @@
-package org.example.mega_crew.domain.signlanguageFrame.dto;
+package org.example.mega_crew.domain.signlanguage.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

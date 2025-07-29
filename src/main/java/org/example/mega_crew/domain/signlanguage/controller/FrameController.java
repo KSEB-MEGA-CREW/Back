@@ -1,14 +1,14 @@
-package org.example.mega_crew.domain.signlanguageFrame.controller;
+package org.example.mega_crew.domain.signlanguage.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.mega_crew.domain.signlanguageFrame.dto.FrameRequest;
-import org.example.mega_crew.domain.signlanguageFrame.dto.FrameSubmissionResponse;
-import org.example.mega_crew.domain.signlanguageFrame.service.AsyncAIProxyService;
-import org.example.mega_crew.domain.signlanguageFrame.service.FrameValidationService;
-import org.example.mega_crew.domain.signlanguageFrame.service.RedisSessionService;
+import org.example.mega_crew.domain.signlanguage.dto.FrameRequest;
+import org.example.mega_crew.domain.signlanguage.dto.FrameSubmissionResponse;
+import org.example.mega_crew.domain.signlanguage.service.AsyncAIProxyService;
+import org.example.mega_crew.domain.signlanguage.service.FrameValidationService;
+import org.example.mega_crew.domain.signlanguage.service.RedisSessionService;
 import org.example.mega_crew.domain.user.service.UserService;
 import org.example.mega_crew.global.common.ApiResponse;
 import org.example.mega_crew.global.security.JwtUtil;
