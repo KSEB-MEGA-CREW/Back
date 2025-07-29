@@ -1,4 +1,4 @@
-package org.example.mega_crew.domain.signlanguageFrame.config;
+package org.example.mega_crew.domain.signlanguage.config;
 
 
 import lombok.Data;

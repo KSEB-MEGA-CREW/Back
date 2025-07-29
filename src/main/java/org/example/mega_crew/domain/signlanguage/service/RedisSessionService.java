@@ -1,4 +1,4 @@
-package org.example.mega_crew.domain.signlanguageFrame.service;
+package org.example.mega_crew.domain.signlanguage.service;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

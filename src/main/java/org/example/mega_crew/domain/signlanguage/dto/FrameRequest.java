@@ -1,4 +1,4 @@
-package org.example.mega_crew.domain.signlanguageFrame.dto;
+package org.example.mega_crew.domain.signlanguage.dto;
 
 
 import jakarta.validation.constraints.NotBlank;

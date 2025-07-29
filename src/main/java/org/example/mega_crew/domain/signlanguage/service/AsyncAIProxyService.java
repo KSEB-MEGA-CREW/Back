@@ -1,10 +1,10 @@
-package org.example.mega_crew.domain.signlanguageFrame.service;
+package org.example.mega_crew.domain.signlanguage.service;
 
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.mega_crew.domain.signlanguageFrame.config.AIServerConfig;
-import org.example.mega_crew.domain.signlanguageFrame.dto.FrameRequest;
+import org.example.mega_crew.domain.signlanguage.config.AIServerConfig;
+import org.example.mega_crew.domain.signlanguage.dto.FrameRequest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
