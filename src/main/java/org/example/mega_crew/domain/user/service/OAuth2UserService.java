@@ -47,9 +47,15 @@ public class OAuth2UserService extends DefaultOAuth2UserService { // 기존 : DB
     }
 
     private String getNameAttributeKey(String registrationId) {
-        if ("google".equals(registrationId)) {
-            return "sub";
+        switch (registrationId) {
+            case "google":
+                return "sub";
+            case "naver":
+                return "sub";
+            case "kakao":
+                return "id"; // Kakao도 기본 id
+            default:
+                return "id";
         }
-        return "id";
     }
 }

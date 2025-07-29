@@ -12,7 +12,11 @@ public class OAuth2UserInfoFactory {
         // AuthProvider == GOOGLE인 경우
         if(registrationId.equalsIgnoreCase(AuthProvider.GOOGLE.toString())){
             return new GoogleOAuth2UserInfo(attributes);
-        }else{
+        }
+        else if (registrationId.equalsIgnoreCase(AuthProvider.NAVER.toString())) {
+            return new NaverOAuth2UserInfo(attributes);
+        }
+        else{
             throw new IllegalArgumentException(registrationId + "을(를) 이용한 로그인은 지원되지 않습니다.");
         }
     }
