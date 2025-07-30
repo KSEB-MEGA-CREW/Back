@@ -67,9 +67,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService { // 기존 : DB
             case "naver":
                 return "id";
             case "kakao":
-                return "id1"; // Kakao도 기본 id
+                return "id";
             default:
-                return "id2";
+                return "default_id";
         }
     }
 }
