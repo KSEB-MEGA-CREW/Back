@@ -39,6 +39,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService { // 기존 : DB
                     new OAuth2Error("invalid_user_info", "OAuth2 provider에서 이메일을 찾을 수 없습니다.", null)
                 );
             }
+
             Map<String, Object> userAttributes = registrationId.equals("naver")
                 ? (Map<String, Object>) oAuth2User.getAttributes().get("response")
                 : oAuth2User.getAttributes();
@@ -66,9 +67,9 @@ public class OAuth2UserService extends DefaultOAuth2UserService { // 기존 : DB
             case "naver":
                 return "id";
             case "kakao":
-                return "id1"; // Kakao도 기본 id
+                return "id";
             default:
-                return "id2";
+                return "default_id";
         }
     }
 }

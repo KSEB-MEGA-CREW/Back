@@ -16,6 +16,9 @@ public class OAuth2UserInfoFactory {
         else if (registrationId.equalsIgnoreCase(AuthProvider.NAVER.toString())) {
             return new NaverOAuth2UserInfo((Map<String, Object>) attributes.get("response"));
         }
+        else if (registrationId.equalsIgnoreCase(AuthProvider.KAKAO.toString())) {
+            return new KakaoOauth2UserInfo(attributes);
+        }
         else{
             throw new IllegalArgumentException(registrationId + "을(를) 이용한 로그인은 지원되지 않습니다.");
         }
