@@ -12,6 +12,7 @@ import org.example.mega_crew.domain.user.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -43,9 +44,15 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 return;
             }
 
-            String token = userService.processOAuth2Login(email, username, providerId, AuthProvider.GOOGLE);
+            // 동적으로 provider 값 구하기
+            String registrationId = null;
+            if (authentication instanceof OAuth2AuthenticationToken) {
+                registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId(); // google, naver 등
+            }
+            AuthProvider provider = AuthProvider.valueOf(registrationId.toUpperCase());
 
-            // 수정: 환경변수 사용
+            String token = userService.processOAuth2Login(email, username, providerId, provider);
+
             String redirectUrl = String.format("%s/auth/callback?token=%s", frontendUrl, token);
             response.sendRedirect(redirectUrl);
 
