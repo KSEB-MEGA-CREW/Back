@@ -6,11 +6,11 @@ public class KakaoOauth2UserInfo extends OAuth2UserInfo{
    public KakaoOauth2UserInfo(Map<String, Object> attributes){ super(attributes); }
 
    @Override
-   public String getId() { return ""; }
+   public String getId() { return (String) attributes.get("id"); }
 
    @Override
-   public String getName() { return ""; }
+   public String getName() { return (String) attributes.get("name"); }
 
    @Override
-   public String getEmail() { return ""; }
+   public String getEmail() { return (String) attributes.get("email"); }
 }
