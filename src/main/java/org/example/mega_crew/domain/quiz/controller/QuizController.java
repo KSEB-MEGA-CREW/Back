@@ -9,6 +9,7 @@ import org.example.mega_crew.domain.quiz.service.QuizService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 @RestController
 @RequestMapping("/api/quiz")
@@ -27,6 +28,7 @@ public class QuizController {
     return quizService.generateQuiz(QuizCount); // quiz 5개 생성
   }
 
+
   @PostMapping("/result")
   @Operation(summary = "USER별 퀴즈 기록", description = "USER별 정답 개수를 기록합니다.")
   public ResponseEntity<?> saveQuizResult(@RequestBody QuizRecordSaveRequestDto dto) {
@@ -34,10 +36,21 @@ public class QuizController {
     return ResponseEntity.ok().build();
   }
 
+
   // 디버깅용 GET 매핑
   @GetMapping("/test")
   @Operation(summary = "controller 디버깅용")
   public String test() {
     return "ok";
+  }
+
+
+  // 특정 날짜 특정 회원의 최고 정답 개수 조회
+  @GetMapping("/correct-count/{date}/user/{userId}")
+  public ResponseEntity<Integer> getUserMaxCorrectCount(
+      @PathVariable String date,
+      @PathVariable Long userId) {
+    Integer maxCorrectCount = quizService.getUserMaxCorrectCount(date, userId);
+    return ResponseEntity.ok(maxCorrectCount);
   }
 }
