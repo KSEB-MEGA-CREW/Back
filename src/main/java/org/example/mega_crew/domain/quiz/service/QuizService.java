@@ -10,6 +10,8 @@ import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.example.mega_crew.global.client.api.quiz.QuizApiClient;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -81,7 +83,13 @@ public class QuizService {
       .orElseThrow(() -> new IllegalArgumentException("사용자 없음: " + dto.getUserId()));
     QuizRecord record = new QuizRecord(dto.getCorrectCount(), user);
       quizRecordRepository.save(record);
-    }
+  }
+
+  //특정 날짜와 사용자의 최고 정답 개수 조회
+  public Integer getUserMaxCorrectCount(String date, Long userId) {
+    LocalDate localDate = LocalDate.parse(date);
+    return quizRecordRepository.getMaxCorrectCountByDateAndUser(localDate, userId);
+  }
 }
 
 
