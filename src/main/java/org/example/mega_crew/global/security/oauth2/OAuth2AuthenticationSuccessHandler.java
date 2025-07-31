@@ -35,50 +35,36 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                         Authentication authentication) throws IOException, ServletException {
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            String email = oAuth2User.getAttribute("email");
+            String username = oAuth2User.getAttribute("name");
+
             String registrationId = null;
             if (authentication instanceof OAuth2AuthenticationToken) {
                 registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
             }
 
-            String email = null;
-            String username = null;
-            String providerId = null;
+            Object providerIdObj = oAuth2User.getAttribute("id");
+            String providerId = String.valueOf(providerIdObj); // String으로 변환
 
-            // 소셜 종류별로 파싱 로직 분기
-            switch (registrationId) {
-                case "google":
-                    providerId = oAuth2User.getAttribute("sub");
-                    email = oAuth2User.getAttribute("email");
-                    username = oAuth2User.getAttribute("name");
-                    break;
-                case "naver":
-                    providerId = oAuth2User.getAttribute("id");
-                    email = oAuth2User.getAttribute("email");
-                    username = oAuth2User.getAttribute("name");
-                    break;
-                case "kakao":
-                    providerId = String.valueOf(oAuth2User.getAttribute("id"));
-                    Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
-                    if (kakaoAccount != null) {
-                        email = (String) kakaoAccount.get("email");
-                        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                        if (profile != null) {
-                            username = (String) profile.get("nickname");
-                        }
-                    }
-                    break;
-                default:
-                    providerId = oAuth2User.getName();
+            // kakao의 경우 email 추출
+            if(email==null){
+                Map<String,Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
+                if(kakaoAccount !=null){
+                    email = (String) kakaoAccount.get("email");
+                }
+                else{ // kakao의 경우가 아님에도 불구하고 email이 존재하지 않는 경우
+                    log.error("OAuth2 email이 존재하지 않습니다.");
+                    response.sendRedirect(frontendUrl + "/auth/callback?error=no_email");
+                    return;
+                }
             }
 
-
-            // 꼭 로그로 확인! 실제 값이 잘 파싱됐는지
-            log.info("Parsed info - registrationId: {}, providerId: {}, email: {}, username: {}", registrationId, providerId, email, username);
-
-            if(email == null) {
-                log.error("OAuth2 email이 존재하지 않습니다.");
-                response.sendRedirect(frontendUrl + "/auth/callback?error=no_email");
-                return;
+            // kakao의 경우 username 추출
+            if(username==null){
+                Map<String,Object> properties = oAuth2User.getAttribute("properties");
+                if(properties!=null){
+                    username = (String) properties.get("nickname");
+                }
             }
 
             AuthProvider provider = AuthProvider.valueOf(registrationId.toUpperCase());
@@ -86,7 +72,6 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
             String redirectUrl = String.format("%s/auth/callback?token=%s", frontendUrl, token);
             response.sendRedirect(redirectUrl);
-
         } catch (Exception e) {
             log.error("OAuth2 로그인 실패", e);
             response.sendRedirect(frontendUrl + "/auth/callback?error=server_error");
