@@ -94,6 +94,9 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
       try {
          log.info("OAuth2 login process starts - Email : {}, Provider : {}", email, authProvider);
 
+         // providerId -> string으로 변환
+         String providerIdStr = String.valueOf(providerId);
+
          // 기존 사용자 확인 by providerId, authProvider
          Optional<User> existingUser = userRepository.findByAuthProviderAndProviderId(authProvider, providerId);
 
@@ -110,12 +113,12 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
             if (existingEmailUser.isPresent()) { // LOCAL user로 가입한 경우
                user = existingEmailUser.get();
                // 기존 LOCAL 사용자를 OAuth2로 연동
-               user.linkOAuth2Account(authProvider, providerId, username);
+               user.linkOAuth2Account(authProvider, providerIdStr, username);
                userRepository.save(user);
                log.info("기존 사용자 OAuth2 연동 - Email: {}", email);
             } else { // 완전히 새로운 사용자
                // 새 사용자 생성
-               user = createOAuth2User(email, username, providerId, authProvider);
+               user = createOAuth2User(email, username, providerIdStr, authProvider);
                log.info("new OAuth2 user created - Email: {}", email);
             }
          }

@@ -70,12 +70,12 @@ public class RedisSessionService {
         long currentTime = System.currentTimeMillis();
 
         // Hash로 세션 정보 저장
-        Map<String, Object> sessionData = Map.of(
+        Map<String, String> sessionData = Map.of(
           "sessionId", sessionId,
-          "userId",userId,
-          "startTime",currentTime,
-          "lastActivity",currentTime,
-          "submissionCount",0
+          "userId",userId.toString(),
+          "startTime",String.valueOf(currentTime),
+          "lastActivity",String.valueOf(currentTime),
+          "submissionCount","0"
         );
 
         redisTemplate.opsForHash().putAll(key, sessionData);
