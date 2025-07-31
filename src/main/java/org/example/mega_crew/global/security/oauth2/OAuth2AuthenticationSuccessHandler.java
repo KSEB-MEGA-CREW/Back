@@ -38,6 +38,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             String email = oAuth2User.getAttribute("email");
             String username = oAuth2User.getAttribute("name");
 
+            String registrationId = null;
+            if (authentication instanceof OAuth2AuthenticationToken) {
+                registrationId = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
+            }
+
             Object providerIdObj = oAuth2User.getAttribute("id");
             String providerId = String.valueOf(providerIdObj); // String으로 변환
 
@@ -62,7 +67,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 }
             }
 
-            String token = userService.processOAuth2Login(email, username, providerId, AuthProvider.KAKAO);
+            AuthProvider provider = AuthProvider.valueOf(registrationId.toUpperCase());
+            String token = userService.processOAuth2Login(email, username, providerId, provider);
 
             String redirectUrl = String.format("%s/auth/callback?token=%s", frontendUrl, token);
             response.sendRedirect(redirectUrl);
