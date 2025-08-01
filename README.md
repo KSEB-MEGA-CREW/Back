@@ -7,7 +7,7 @@
 
 ## 🛠️ 사용 기술 스택
 
-- **백엔드**: Spring Boot, MySQL
+- **백엔드**: Spring Boot, MySQL, Spring Security
 - **3D 모델링**: Unity
 - **인프라**: AWS EC2, AWS S3
 
