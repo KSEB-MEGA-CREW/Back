@@ -12,7 +12,7 @@ import org.example.mega_crew.global.common.BaseEntity;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class QuizRecord extends BaseEntity {
+public class QuizRecords extends BaseEntity {
 
    @Id
    @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +24,7 @@ public class QuizRecord extends BaseEntity {
    @JoinColumn(name = "user_id", referencedColumnName = "id")
    private User user;
 
-   public QuizRecord(int correctCount, User user) {
+   public QuizRecords(int correctCount, User user) {
       this.correctCount = correctCount;
       this.user = user;
    }

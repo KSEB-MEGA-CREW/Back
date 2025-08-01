@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/quiz")
 @Tag(name="퀴즈 관련 controllers")
@@ -30,7 +32,7 @@ public class QuizController {
 
 
   @PostMapping("/result")
-  @Operation(summary = "USER별 퀴즈 기록", description = "USER별 정답 개수를 기록합니다.")
+  @Operation(summary = "사용자별 퀴즈 기록", description = "사용자별 정답 개수를 기록합니다.")
   public ResponseEntity<?> saveQuizResult(@RequestBody QuizRecordSaveRequestDto dto) {
     quizService.saveQuizRecord(dto);
     return ResponseEntity.ok().build();
@@ -47,11 +49,19 @@ public class QuizController {
 
   // 특정 날짜 특정 회원의 최고 정답 개수 조회
   @GetMapping("/correct-count/{date}/user/{userId}")
-  @Operation(summary = "특정 날짜에 회원의 최고 정답 개수 조회")
+  @Operation(summary = "특정 날짜 사용자의 최고 정답 개수 조회")
   public ResponseEntity<Integer> getUserMaxCorrectCount(
       @PathVariable String date,
       @PathVariable Long userId) {
     Integer maxCorrectCount = quizService.getUserMaxCorrectCount(date, userId);
     return ResponseEntity.ok(maxCorrectCount);
+  }
+
+
+  @GetMapping("/category-stats/user/{userId}")
+  @Operation(summary = "사용자별 카테고리별 통계 조회")
+  public ResponseEntity<Map<String, Integer>> getCategoryStatsByUser(@PathVariable Long userId) {
+    Map<String, Integer> stats = quizService.getCategoryStatsByUser(userId);
+    return ResponseEntity.ok(stats);
   }
 }
