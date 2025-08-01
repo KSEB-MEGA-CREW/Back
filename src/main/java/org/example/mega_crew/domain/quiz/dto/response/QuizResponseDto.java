@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class QuizResponseDto {
   private String signDescription;
+  private String category;
   private List<ChoiceDto> choices;
 
 }

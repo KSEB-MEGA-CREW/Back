@@ -47,6 +47,7 @@ public class QuizController {
 
   // 특정 날짜 특정 회원의 최고 정답 개수 조회
   @GetMapping("/correct-count/{date}/user/{userId}")
+  @Operation(summary = "특정 날짜에 회원의 최고 정답 개수 조회")
   public ResponseEntity<Integer> getUserMaxCorrectCount(
       @PathVariable String date,
       @PathVariable Long userId) {

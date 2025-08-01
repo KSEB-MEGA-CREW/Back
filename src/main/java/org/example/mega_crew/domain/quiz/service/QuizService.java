@@ -30,7 +30,7 @@ public class QuizService {
   }
 
 
-  // 문제 개수 5개로 선지 생성
+  // 문제 개수 5개, 선지 생성
   public List<QuizResponseDto> generateQuiz(int count) {
     List<Map<String, String>> wordList = Collections.emptyList();
     try {
@@ -48,7 +48,6 @@ public class QuizService {
     }
     // 원본을 복사해 랜덤 추출
     List<Map<String, String>> pool = new ArrayList<>(wordList);
-
     List<QuizResponseDto> quizList = new ArrayList<>();
     Random rand = new Random();
 
@@ -57,6 +56,7 @@ public class QuizService {
       int answerIdx = rand.nextInt(pool.size());
       Map<String, String> answer = pool.remove(answerIdx);
       String answerWord = answer.get("word");
+      String category = answer.get("category");
 
       // 오답 후보: 나온 단어 제외
       List<String> wrongWords = wordList.stream()
@@ -72,7 +72,7 @@ public class QuizService {
       }
       Collections.shuffle(choices);
 
-      quizList.add(new QuizResponseDto(answer.get("signDescription"), choices));
+      quizList.add(new QuizResponseDto(answer.get("signDescription"), category ,choices));
     }
     return quizList;
   }
