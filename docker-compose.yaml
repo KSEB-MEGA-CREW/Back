@@ -1,0 +1,141 @@
+version: '3.8'
+
+services:
+  # Spring Boot 애플리케이션 서버
+  app:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/slt-project/backend:latest
+    container_name: mega-crew-app-dev
+    ports:
+      - "8080:8080"  # HTTP 포트
+    environment:
+      # Spring 프로파일 설정 (개발환경)
+      - SPRING_PROFILES_ACTIVE=dev
+      
+      # 데이터베이스 연결 설정 (개발환경)
+      - DB_URL=jdbc:mysql://db:3306/mega_crew
+      - DB_USERNAME=root
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DDL_AUTO=${DDL_AUTO}
+      - SHOW_SQL=true # SQL log 활성화
+      
+      # JWT 인증 설정
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=86400000
+      
+      # Redis 캐시 서버 연결
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      
+      # 애플리케이션 URL
+      - BASE_URL=${BASE_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+
+      # CORS (개발환경용 관대한 설정)
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      
+      # OAuth2 설정 (테스트의 경우 더미값 허용 설정 추가하기)
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+
+      # AI server (개발환경)
+      - AI_SERVER_URL=${AI_SERVER_URL}
+    
+    # 의존성 설정 (DB, Redis 먼저 시작)
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    # 컨테이너 재시작 정책
+    restart: unless-stopped
+    
+    # 헬스체크 설정
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    # 네트워크 연결
+    networks:
+      - app-network
+
+  # MySQL 데이터베이스 서버
+  db:
+    image: mysql:8.0
+    container_name: mega-crew-db
+    environment:
+      # MySQL 루트 패스워드
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      # 기본 데이터베이스 생성
+      - MYSQL_DATABASE=mega_crew
+      # 문자셋 설정 (한글 지원)
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+    
+    ports:
+      - "3307:3306"  # 외부 접근용 (개발/디버깅) local과 충돌하지 않도록 주의
+    
+    # 데이터 영속성 보장
+    volumes:
+      - mysql_data:/var/lib/mysql
+    # - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # 초기 데이터 설정
+    
+    restart: unless-stopped
+    
+    # MySQL 헬스체크
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    
+    networks:
+      - app-network
+
+  # Redis 캐시 서버 (세션 관리)
+  redis:
+    image: redis:7-alpine
+    container_name: mega-crew-redis-dev
+    command: redis-server --appendonly yes --save 60 1000  # 개발환경용 빈번한 저장
+    
+    ports:
+      - "6379:6379"  # 외부 접근용 (개발/모니터링)
+    
+    # Redis 데이터 영속성
+    volumes:
+      - redis_data:/data
+    
+    restart: unless-stopped
+    
+    # Redis 헬스체크
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    
+    networks:
+      - app-network
+
+# 네트워크 설정 (컨테이너 간 통신)
+networks:
+  app-network:
+    driver: bridge
+
+# 데이터 볼륨 (데이터 영속성 보장)
+volumes:
+  # MySQL 데이터 저장소
+  mysql_data:
+    driver: local
+  
+  # Redis 데이터 저장소  
+  redis_data:
+    driver: local
