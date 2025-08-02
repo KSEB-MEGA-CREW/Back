@@ -7,12 +7,13 @@ import org.example.mega_crew.domain.quiz.dto.choice.ChoiceDto;
 
 import java.util.List;
 
-// DB에서 받아오는 값: 수어 설명, 선지
+// DB에서 받아오는 값: 수어 설명, 선지, 카테고리
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizResponseDto {
   private String signDescription;
+  private String category;
   private List<ChoiceDto> choices;
 
 }
