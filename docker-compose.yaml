@@ -1,8 +1,9 @@
 version: '3.8'
-
+# localhost -> container명
+# 네트워크 호스트명이 container명이 되므로 변경 필수
 services:
   # Spring Boot 애플리케이션 서버
-  app:
+  mega-crew-app-dev:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/slt-project/backend:latest
     container_name: mega-crew-app-dev
     ports:
@@ -46,9 +47,9 @@ services:
     
     # 의존성 설정 (DB, Redis 먼저 시작)
     depends_on:
-      db:
+      mega-crew-db:
         condition: service_healthy
-      redis:
+      mega-crew-redis-dev:
         condition: service_healthy
     
     # 컨테이너 재시작 정책
@@ -102,7 +103,7 @@ services:
       - app-network
 
   # Redis 캐시 서버 (세션 관리)
-  redis:
+  mega-crew-redis-dev:
     image: redis:7-alpine
     container_name: mega-crew-redis-dev
     command: redis-server --appendonly yes --save 60 1000  # 개발환경용 빈번한 저장
