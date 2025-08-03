@@ -16,11 +16,11 @@ services:
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DDL_AUTO=${DDL_AUTO}
-      - SHOW_SQL=true # SQL log 활성화
+      - SHOW_SQL=${SHOW_SQL} # SQL log 활성화
       
       # JWT 인증 설정
       - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRATION=86400000
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
       
       # Redis 캐시 서버 연결
       - REDIS_HOST=${REDIS_HOST}
@@ -56,7 +56,7 @@ services:
     
     # 헬스체크 설정
     healthcheck:
-      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
