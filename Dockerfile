@@ -23,11 +23,13 @@ COPY --from=builder /build/build/libs/*.jar app.jar
 # Distroless는 이미 non-root 사용자 설정됨
 EXPOSE 8080
 
+# 현재 개발 중이므로 => -Dspring.profiles.active=dev
+# 추후 운영 시 => prod
 # JVM 최적화 옵션
 ENTRYPOINT ["java", \
            "-XX:+UseContainerSupport", \
            "-XX:MaxRAMPercentage=75.0", \
            "-XX:+UseG1GC", \
            "-XX:+UseStringDeduplication", \
-           "-Dspring.profiles.active=prod", \
+           "-Dspring.profiles.active=dev", \
            "-jar", "app.jar"]
