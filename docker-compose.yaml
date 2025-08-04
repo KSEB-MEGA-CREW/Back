@@ -28,11 +28,11 @@ services:
       - REDIS_PORT=${REDIS_PORT}
       
       # 애플리케이션 URL
-      - BASE_URL=${BASE_URL:http://localhost:8080}
-      - FRONTEND_URL=${FRONTEND_URL:http://localhost:3000}
+      - BASE_URL=${BASE_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
 
       # CORS (개발환경용 관대한 설정)
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
       
       # OAuth2 설정 (테스트의 경우 더미값 허용 설정 추가하기)
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -43,7 +43,7 @@ services:
       - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
 
       # AI server (개발환경)
-      - AI_SERVER_URL=${AI_SERVER_URL:http://localhost:5000}
+      - AI_SERVER_URL=${AI_SERVER_URL}
     
     # 의존성 설정 (DB, Redis 먼저 시작)
     depends_on:
