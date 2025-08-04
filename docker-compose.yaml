@@ -1,19 +1,19 @@
-version: '3.8'
+# version: '3.8' <- 에러 (Compose Specification 사용으로 불필요)
 # localhost -> container명
 # 네트워크 호스트명이 container명이 되므로 변경 필수
 services:
   # Spring Boot 애플리케이션 서버
-  mega-crew-app-dev:
+  app:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/slt-project/backend:latest
-    container_name: mega-crew-app-dev
+    container_name: mega-crew-app
     ports:
       - "8080:8080"  # HTTP 포트
     environment:
       # Spring 프로파일 설정 (개발환경)
       - SPRING_PROFILES_ACTIVE=dev
       
-      # 데이터베이스 연결 설정 (개발환경)
-      - DB_URL=${DB_URL}
+      # 데이터베이스 연결 설정 (개발환경 : 데이터베이스명 통일)
+      - DB_URL=jdbc:mysql://db:3306/slt_user_local_db?allowPublicKeyRetrieval=true&useSSL=false
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DDL_AUTO=${DDL_AUTO}
@@ -23,16 +23,16 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       
-      # Redis 캐시 서버 연결
-      - REDIS_HOST=${REDIS_HOST}
+      # Redis 캐시 서버 연결 ()
+      - REDIS_HOST=redis # localhost -> redis
       - REDIS_PORT=${REDIS_PORT}
       
       # 애플리케이션 URL
-      - BASE_URL=${BASE_URL}
-      - FRONTEND_URL=${FRONTEND_URL}
+      - BASE_URL=${BASE_URL:http://localhost:8080}
+      - FRONTEND_URL=${FRONTEND_URL:http://localhost:3000}
 
       # CORS (개발환경용 관대한 설정)
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080}
       
       # OAuth2 설정 (테스트의 경우 더미값 허용 설정 추가하기)
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -43,13 +43,13 @@ services:
       - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
 
       # AI server (개발환경)
-      - AI_SERVER_URL=${AI_SERVER_URL}
+      - AI_SERVER_URL=${AI_SERVER_URL:http://localhost:5000}
     
     # 의존성 설정 (DB, Redis 먼저 시작)
     depends_on:
-      mega-crew-db:
+      db:
         condition: service_healthy
-      mega-crew-redis-dev:
+      redis:
         condition: service_healthy
     
     # 컨테이너 재시작 정책
@@ -57,7 +57,7 @@ services:
     
     # 헬스체크 설정
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -76,7 +76,7 @@ services:
       # MySQL 루트 패스워드
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
       # 기본 데이터베이스 생성
-      - MYSQL_DATABASE=mega_crew
+      - MYSQL_DATABASE=slt_user_local_db
       # 문자셋 설정 (한글 지원)
       - MYSQL_CHARACTER_SET_SERVER=utf8mb4
       - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
@@ -103,9 +103,9 @@ services:
       - app-network
 
   # Redis 캐시 서버 (세션 관리)
-  mega-crew-redis-dev:
+  redis:
     image: redis:7-alpine
-    container_name: mega-crew-redis-dev
+    container_name: mega-crew-redis
     command: redis-server --appendonly yes --save 60 1000  # 개발환경용 빈번한 저장
     
     ports:
