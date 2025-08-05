@@ -11,9 +11,9 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuizResponseDto {
+public class QuizResponseDto { // 프론트와 변수명 일치
+  private String word;
   private String signDescription;
   private String category;
   private List<ChoiceDto> choices;
-
 }

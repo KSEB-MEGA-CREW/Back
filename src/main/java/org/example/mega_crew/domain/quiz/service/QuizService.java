@@ -1,5 +1,7 @@
 package org.example.mega_crew.domain.quiz.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.quiz.dto.choice.ChoiceDto;
 import org.example.mega_crew.domain.quiz.dto.request.QuizRecordSaveRequestDto;
 import org.example.mega_crew.domain.quiz.dto.response.QuizResponseDto;
@@ -10,13 +12,18 @@ import org.example.mega_crew.domain.quiz.repository.QuizRecordRepository;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.example.mega_crew.global.client.api.quiz.QuizApiClient;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
+@Transactional
 public class QuizService {
 
   private final QuizApiClient quizApiClient;
@@ -24,19 +31,11 @@ public class QuizService {
   private final QuizCategoryRecordRepository categoryRecordRepository;
   private final UserRepository userRepository;
 
-  public QuizService(QuizApiClient quizApiClient, QuizRecordRepository quizRecordRepository, QuizCategoryRecordRepository categoryRecordRepository, UserRepository userRepository) {
-    this.quizApiClient = quizApiClient;
-    this.quizRecordRepository = quizRecordRepository;
-    this.categoryRecordRepository = categoryRecordRepository;
-    this.userRepository = userRepository;
-  }
-
-
   // 문제 개수 5개, 선지 생성, 카테고리
-  public List<QuizResponseDto> generateQuiz(int count) {
-    List<Map<String, String>> wordList = Collections.emptyList();
+  public List<QuizResponseDto> generateQuiz(int count, Long userId) {
+    List<Map<String,String>> wordList = Collections.emptyList();
     try {
-      wordList = quizApiClient.fetchSignWords(count * 4);
+      wordList = quizApiClient.fetchSignWords(count*4);
 
       wordList = wordList.stream()
           // null 값 처리
@@ -45,36 +44,48 @@ public class QuizService {
               && !entry.get("signDescription").isEmpty())
           .collect(Collectors.toList());
     } catch (Exception e) {
-      e.printStackTrace();
-      return Collections.emptyList();
+      log.error("퀴즈 API 호출 실패", e);
+      throw new RuntimeException("퀴즈 데이터를 가져오는데 실패했습니다.",e);
     }
-    // 원본을 복사해 랜덤 추출
-    List<Map<String, String>> pool = new ArrayList<>(wordList);
+    List<QuizResponseDto> quizList = generateQuizFromWordList(wordList, count);
+
+    log.info("퀴즈 생성 완료 - 사용자 ID: {}", userId);
+
+    return quizList;
+  }
+
+  private List<QuizResponseDto> generateQuizFromWordList(List<Map<String,String>> wordList, int count){
+    List<Map<String,String>> pool = new ArrayList<>(wordList);
     List<QuizResponseDto> quizList = new ArrayList<>();
     Random rand = new Random();
 
     for (int i = 0; i < count && !pool.isEmpty(); i++) {
-      // 랜덤하게 정답 하나 추출
       int answerIdx = rand.nextInt(pool.size());
       Map<String, String> answer = pool.remove(answerIdx);
       String answerWord = answer.get("word");
+      String answerMeaning = answer.get("meaning"); // meaning 추가 => 프론트에서 써서 추가했는데 나중에 프론트랑 얘기해서 제거 가능
       String category = answer.get("category");
 
-      // 오답 나온 단어 제외
-      List<String> wrongWords = wordList.stream()
-          .map(m -> m.get("word"))
-          .filter(w -> !w.equals(answerWord))
-          .collect(Collectors.toList());
+      List<Map<String,String>> wrongWords = wordList.stream()
+                      .filter(w -> !w.get("word").equals(answerWord))
+                      .collect(Collectors.toList());
 
       Collections.shuffle(wrongWords);
       List<ChoiceDto> choices = new ArrayList<>();
-      choices.add(new ChoiceDto(answerWord, true));
+
+      choices.add(new ChoiceDto(answerWord, answerMeaning , true));
+
       for (int k = 0; k < 3 && k < wrongWords.size(); k++) {
-        choices.add(new ChoiceDto(wrongWords.get(k), false));
+        Map<String,String> wrongChoice = wrongWords.get(k);
+        choices.add(new ChoiceDto(
+                wrongChoice.get("word"),
+                wrongChoice.get("meaning"),
+                false
+        ));
       }
       Collections.shuffle(choices);
 
-      quizList.add(new QuizResponseDto(answer.get("signDescription"), category, choices));
+      quizList.add(new QuizResponseDto(answerWord ,answer.get("signDescription"), category, choices));
     }
     return quizList;
   }
