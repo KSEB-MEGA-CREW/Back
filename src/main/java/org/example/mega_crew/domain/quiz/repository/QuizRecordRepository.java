@@ -12,7 +12,15 @@ import java.util.List;
 @Repository
 public interface QuizRecordRepository extends JpaRepository<QuizRecords, Long> {
 
-   // 특정 날짜의 특정 사용자 최고 정답 개수 조회
-   @Query("SELECT COALESCE(MAX(qr.correctCount), 0) FROM QuizRecords qr WHERE DATE(qr.createdDate) = :date AND qr.user.id = :userId")
-   Integer getMaxCorrectCountByDateAndUser(@Param("date") LocalDate date, @Param("userId") Long userId);
+   // 특정 월의 사용자 일별 퀴즈 정답률 조회
+   @Query("SELECT DATE(qr.createdDate) as date, " +
+       "SUM(qr.correctCount) as totalCorrect, " +
+       "COUNT(qr) * 5 as totalQuestions " +
+       "FROM QuizRecords qr " +
+       "WHERE DATE(qr.createdDate) BETWEEN :startDate AND :endDate " +
+       "AND qr.user.id = :userId " +
+       "GROUP BY DATE(qr.createdDate)")
+   List<Object[]> getMonthlyQuizStatsByUser(@Param("startDate") LocalDate startDate,
+                                            @Param("endDate") LocalDate endDate,
+                                            @Param("userId") Long userId);
 }

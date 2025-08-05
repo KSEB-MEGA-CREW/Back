@@ -101,10 +101,32 @@ public class QuizService {
     saveCategoryQuizRecord(dto);
   }
 
-  // 특정 날짜와 사용자의 최고 정답 개수 조회
-  public Integer getUserMaxCorrectCount(String date, Long userId) {
-    LocalDate localDate = LocalDate.parse(date);
-    return quizRecordRepository.getMaxCorrectCountByDateAndUser(localDate, userId);
+  // 특정 월의 사용자 일별 퀴즈 정답률 조회
+  public Map<String, Double> getUserMonthlyQuizStats(int year, int month, Long userId) {
+    LocalDate startDate = LocalDate.of(year, month, 1);
+    LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
+
+    List<Object[]> results = quizRecordRepository.getMonthlyQuizStatsByUser(startDate, endDate, userId);
+
+    Map<String, Double> monthlyStats = new HashMap<>();
+
+    // 당월의 모든 날짜 기본 값 0.0으로 초기화
+    for (int day = 1; day <= startDate.lengthOfMonth(); day++) {
+      LocalDate date = LocalDate.of(year, month, day);
+      monthlyStats.put(date.toString(), 0.0);
+    }
+
+    // 실제 데이터로 정답률 계산
+    for (Object[] result : results) {
+      LocalDate date = (LocalDate) result[0];
+      Long totalCorrect = (Long) result[1];
+      Long totalQuestions = (Long) result[2];
+
+      double accuracy = totalQuestions > 0 ? (double) totalCorrect / totalQuestions * 100 : 0.0;
+      monthlyStats.put(date.toString(), Math.round(accuracy * 10) / 10.0); // 소수점 1자리
+    }
+
+    return monthlyStats;
   }
 
   // 카테고리별 정답 개수 저장
