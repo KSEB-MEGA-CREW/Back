@@ -179,7 +179,10 @@ sign:
 # AI Server
 ai:
   server:
-    base-url: ${AI_SERVER_URL:http://localhost:5000}
+    base-url: http://13.125.253.40:5000 # ml server의 ec2의 public ip로 변경
+    endpoint: /analyze-frame
+    timeout: 5000
+    maxRetrites: 3
 
 # =============================================================================
 # CORS CONFIGURATION
