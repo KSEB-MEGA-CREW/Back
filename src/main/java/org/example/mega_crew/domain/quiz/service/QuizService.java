@@ -85,7 +85,7 @@ public class QuizService {
       }
       Collections.shuffle(choices);
 
-      quizList.add(new QuizResponseDto(answerWord ,answer.get("signDescription"), category, choices));
+      quizList.add(new QuizResponseDto(answer.get("signDescription"), answerWord, category, choices));
     }
     return quizList;
   }
