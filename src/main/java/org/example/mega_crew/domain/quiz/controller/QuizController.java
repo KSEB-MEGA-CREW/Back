@@ -87,17 +87,18 @@ public class QuizController {
   }
 
 
-  // 특정 날짜 특정 회원의 최고 정답 개수 조회
-  @GetMapping("/correct-count/{date}/user/{userId}")
-  @Operation(summary = "특정 날짜 사용자의 최고 정답 개수 조회")
-  public ResponseEntity<Integer> getUserMaxCorrectCount(
-          @PathVariable String date,
-          @PathVariable Long userId) {
-    Integer maxCorrectCount = quizService.getUserMaxCorrectCount(date, userId);
-    return ResponseEntity.ok(maxCorrectCount);
+  // 특정 월의 사용자 일별 퀴즈 정답률 조회
+  @GetMapping("/quiz-stats/monthly/{year}/{month}/user/{userId}")
+  @Operation(summary = "특정 월의 사용자 일별 퀴즈 통계 조회")
+  public ResponseEntity<Map<String, Double>> getUserMonthlyQuizStats(
+      @PathVariable int year,
+      @PathVariable int month,
+      @PathVariable Long userId) {
+    Map<String, Double> monthlyStats = quizService.getUserMonthlyQuizStats(year, month, userId);
+    return ResponseEntity.ok(monthlyStats);
   }
 
-
+  // 일단 놔뒀습니다, 불필요할 시 추후 삭제 필요
   @GetMapping("/category-stats/user/{userId}")
   @Operation(summary = "사용자별 카테고리별 통계 조회")
   public ResponseEntity<Map<String, Integer>> getCategoryStatsByUser(@PathVariable Long userId) {
