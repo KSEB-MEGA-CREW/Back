@@ -69,7 +69,7 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
          throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
       }
 
-      return jwtUtil.createToken(user.getEmail());
+      return jwtUtil.createToken(user.getEmail(), user.getId());
    }
 
    @Transactional(readOnly = true)
@@ -124,7 +124,7 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
          }
 
          // create JWT token
-         String token = jwtUtil.createToken(user.getEmail());
+         String token = jwtUtil.createToken(user.getEmail(), user.getId());
          log.info("OAuth2 login process ends - Email : {}", email);
 
          return token;

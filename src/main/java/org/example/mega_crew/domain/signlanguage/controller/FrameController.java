@@ -166,14 +166,15 @@ public class FrameController {
             }
 
             // 3. UserService를 통해 이메일로 사용자 정보 조회
-            var userResponse = userService.getUserInfo(email);
+            // => DB 조회 없이 토큰에서 직접 추출 => 최적화
+            // var userResponse = userService.getUserInfo(email);
+            Long userId = jwtUtil.extractUserId(token); // 토큰에서 직접 추출
+            if(userId==null){
+                throw new IllegalArgumentException("토큰에서 사용자 ID를 찾을 수 없습니다.");
+            }
+            log.debug("JWT에서 사용자 ID 추출 완료: email={}, userId={}", email, userId);
 
-            log.debug("JWT에서 사용자 ID 추출 완료: email={}, userId={}", email, userResponse.getId());
-
-            return userResponse.getId();
-        } catch(UsernameNotFoundException e){
-            log.error("사용자를 찾을 수 없음: {}", e.getMessage());
-            throw e; // 에러는 우선 상위로 넘김
+            return userId;
         } catch(Exception e){
             log.error("JWT 토큰 처리 오류: {}",e.getMessage());
             throw new IllegalArgumentException("유효하지 않은 JWT 토큰입니다.", e);

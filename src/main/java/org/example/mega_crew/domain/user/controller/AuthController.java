@@ -59,8 +59,10 @@ public class AuthController {
                     .body(ApiResponse.error("이메일 정보를 가져올 수 없습니다."));
         }
 
-        String token = jwtUtil.createToken(email);
         UserResponse userInfo = userService.getUserInfo(email);
+        Long userId = userInfo.getId();
+
+        String token = jwtUtil.createToken(email,userId);
 
         Map<String,Object> response = Map.of(
                 "token", token,

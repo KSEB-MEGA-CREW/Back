@@ -108,7 +108,7 @@ spring:
   # ===========================================================================
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:create} # 개발: create, 운영: validate
+      ddl-auto: ${DDL_AUTO:update} # 개발: create, 운영: validate
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
     properties:
@@ -211,6 +211,8 @@ logging:
     org.example.mega_crew: ${LOG_LEVEL_APP:DEBUG}
     org.hibernate.SQL: ${LOG_LEVEL_SQL:DEBUG}
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_PARAMS:TRACE}
+    org.springframework.web.client.RestTemplate: ${LOG_LEVEL_HTTP:DEBUG}
+    org.example.mega_crew.domain.signlanguage.service: ${LOG_LEVEL_AI:DEBUG}
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight([%5level]) %cyan(%logger{36}) - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
