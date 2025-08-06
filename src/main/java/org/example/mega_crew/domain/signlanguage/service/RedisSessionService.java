@@ -1,7 +1,6 @@
 package org.example.mega_crew.domain.signlanguage.service;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,18 +18,23 @@ public class RedisSessionService {
     private static final String SESSION_KEY_PREFIX = "session:";
     private static final long SESSION_TIMEOUT_MINUTES = 30; // 세션 만료 시간 30분으로 변경 (일반적 관행)
 
-    /**
-     * 새로운 세션을 Redis에 생성하고 사용자 ID와 연결합니다.
-     * 이 메서드는 백엔드 컨트롤러의 세션 생성 API에서 호출됩니다.
-     */
+    // 세션 존재 여부 확인
+    public boolean sessionExists(String sessionId){
+        String key = SESSION_KEY_PREFIX + sessionId;
+        return redisTemplate.hasKey(key);
+    }
+
+    // public createSession 메서드 추가
     public void createSession(String sessionId, Long userId) {
         String key = SESSION_KEY_PREFIX + sessionId;
+        long currentTime = System.currentTimeMillis();
 
         // 세션 데이터 구조를 Map으로 정의
         Map<String, String> sessionData = Map.of(
                 "userId", String.valueOf(userId),
-                "startTime", String.valueOf(System.currentTimeMillis()),
-                "lastActivity", String.valueOf(System.currentTimeMillis())
+                "startTime", String.valueOf(currentTime),
+                "lastActivity", String.valueOf(currentTime),
+                "submissionCount", "0"
         );
 
         // Redis의 Hash 자료구조를 사용하여 세션 데이터를 저장
@@ -46,15 +50,19 @@ public class RedisSessionService {
      */
     public boolean isSessionOwner(String sessionId, Long userId) {
         String key = SESSION_KEY_PREFIX + sessionId;
-        // Redis에 저장된 userId가 요청의 userId와 일치하는지 확인
-        Object sessionOwnerId = redisTemplate.opsForHash().get(key, "userId");
-        return sessionOwnerId != null && sessionOwnerId.equals(String.valueOf(userId));
+        Object storedUserId = redisTemplate.opsForHash().get(key, "userId");
+
+        if (storedUserId == null) {
+            // 자동 세션 생성
+            createSession(sessionId, userId);
+            return true;
+        }
+
+        // TTL 갱신
+        redisTemplate.expire(key, SESSION_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        return userId.equals(Long.valueOf(storedUserId.toString()));
     }
 
-    /**
-     * 프레임 제출 시 세션 만료 시간을 갱신합니다.
-     * frameIndex는 저장하지 않고, 세션만 활성 상태로 유지합니다.
-     */
     public void recordFrameSubmission(String sessionId, int frameIndex) {
         String key = SESSION_KEY_PREFIX + sessionId;
         log.debug("세션 만료 시간 갱신: sessionId={}, frameIndex={}", sessionId, frameIndex);

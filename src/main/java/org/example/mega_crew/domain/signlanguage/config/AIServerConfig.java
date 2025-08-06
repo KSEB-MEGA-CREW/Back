@@ -2,6 +2,7 @@ package org.example.mega_crew.domain.signlanguage.config;
 
 
 import lombok.Data;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.example.mega_crew.global.interceptor.RestTemplateLoggingInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -21,11 +22,19 @@ public class AIServerConfig {
     private String endpoint = "/analyze-frame";
     private int timeout = 5000;
     private int maxRetries = 3; // 최대 재시도 횟수
+    private int maxPools = 100;
 
     @Bean
     public RestTemplate restTemplate() {
         HttpComponentsClientHttpRequestFactory factory =
                 new HttpComponentsClientHttpRequestFactory();
+
+        // connection pool 설정 추가
+        PoolingHttpClientConnectionManager connectionManager =
+                new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(maxPools);
+        connectionManager.setDefaultMaxPerRoute(20);
+
         factory.setConnectTimeout(timeout);
         factory.setReadTimeout(timeout);
 
