@@ -181,8 +181,8 @@ ai:
   server:
     base-url: ${AI_SERVER_URL} # ml server의 ec2의 public ip로 변경
     endpoint: /analyze-frame
-    timeout: 5000
-    maxRetrites: 3
+    timeout: 100000 # 100s
+    max-retries: 3
 
 # =============================================================================
 # CORS CONFIGURATION

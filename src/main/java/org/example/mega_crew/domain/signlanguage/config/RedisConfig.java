@@ -32,6 +32,10 @@ public class RedisConfig { // 세션관리를 위한 redis 설정 클래스
         redisTemplate.setHashKeySerializer(new StringRedisSerializer());
         redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
 
+        // redis 정수 연산 에러를 위해 해시 값(HashValue)을 StringRedisSerializer로 설정
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
+
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
     }
