@@ -110,10 +110,10 @@ public class QuizService {
 
     Map<String, Double> monthlyStats = new HashMap<>();
 
-    // 당월의 모든 날짜 기본 값 0.0으로 초기화
+    // 모든 날짜 기본 값 -1.0 으로 초기화 -> 정답률 0%와 구분하기 위해
     for (int day = 1; day <= startDate.lengthOfMonth(); day++) {
       LocalDate date = LocalDate.of(year, month, day);
-      monthlyStats.put(date.toString(), 0.0);
+      monthlyStats.put(date.toString(), -1.0);
     }
 
     // 실제 데이터로 정답률 계산
