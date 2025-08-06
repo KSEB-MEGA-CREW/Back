@@ -24,24 +24,46 @@ public class AsyncAIProxyService {
 
     @Async
     public void submitFrameAsync(FrameRequest request, String requestId){
-        try{
-            String url = aiServerConfig.getUrl() + aiServerConfig.getEndpoint();
+        long proxyStartTime = System.currentTimeMillis();
 
+        try{
+            // 1. 요청 준비 시간 측정
+            long prepareStartTime = System.currentTimeMillis();
+
+            String url = aiServerConfig.getUrl() + aiServerConfig.getEndpoint();
             HttpHeaders headers = createHttpHeaders(requestId);
             Map<String, Object> requestBody = createRequestBody(request, requestId);
-
             HttpEntity<Map<String,Object>> entity = new HttpEntity<>(requestBody, headers);
-            
-            log.info("AI 서버 비동기 전송 시작: requestId={}, sessionId={}, frameIndex={}",
-                    requestId,request.getSessionId(),request.getFrameIndex());
-            
-            // AI 서버로 비동기 전송 (응답은 별도 처리)
-            restTemplate.postForEntity(url, entity, Map.class);
-            
-            log.info("AI 서버 전송 완료: requestId={}",requestId);
+
+            long prepareEndTime = System.currentTimeMillis();
+
+            log.info("프록시 요청 준비 완료: requestId={}, sessionId={}, frameIndex={}, prepareTime={}ms",
+                    requestId, request.getSessionId(), request.getFrameIndex(),
+                    (prepareEndTime - prepareStartTime));
+
+            // 2. AI 서버 전송 시간 측정
+            long aiRequestStartTime = System.currentTimeMillis();
+
+            var response = restTemplate.postForEntity(url, entity, Map.class);
+
+            long aiRequestEndTime = System.currentTimeMillis();
+            long totalProxyTime = aiRequestEndTime - proxyStartTime;
+            long aiResponseTime = aiRequestEndTime - aiRequestStartTime;
+
+            log.info("프록시 처리 완료: requestId={}, aiResponseTime={}ms, totalProxyTime={}ms, httpStatus={}",
+                    requestId, aiResponseTime, totalProxyTime, response.getStatusCode());
+
+            // 3. 응답 크기 로깅
+            if (response.getBody() != null) {
+                log.debug("AI 서버 응답 데이터: requestId={}, responseSize={}bytes",
+                        requestId, response.getBody().toString().length());
+            }
+
         } catch (Exception ex){
-            log.error("AI 서버 전송 실패: requestId={}, error={}", requestId, ex.getMessage(),ex);
-            // 추후 필요 시 실패 처리 추가하기
+            long totalErrorTime = System.currentTimeMillis() - proxyStartTime;
+
+            log.error("프록시 처리 실패: requestId={}, totalErrorTime={}ms, error={}",
+                    requestId, totalErrorTime, ex.getMessage(), ex);
         }
     }
 
@@ -51,6 +73,7 @@ public class AsyncAIProxyService {
         headers.set("X-Request-Id", requestId);
         headers.set("X-Frame-Format", "jpeg");
         headers.set("X-Processing-Mode", "async");
+        headers.set("X-Proxy-Timestamp", String.valueOf(System.currentTimeMillis()));
         return headers;
     }
     

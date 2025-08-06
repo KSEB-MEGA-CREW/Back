@@ -34,8 +34,8 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
-
-    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+    // CORS 허용 도메인에 AI 서버 주소 추가
+    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080,http://13.209.48.108:5000}")
     private String allowedOrigins;
 
     @Bean
