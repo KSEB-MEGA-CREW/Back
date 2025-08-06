@@ -12,7 +12,6 @@ import org.example.mega_crew.domain.quiz.repository.QuizRecordRepository;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.example.mega_crew.global.client.api.quiz.QuizApiClient;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +32,7 @@ public class QuizService {
 
   // 문제 개수 5개, 선지 생성, 카테고리
   public List<QuizResponseDto> generateQuiz(int count, Long userId) {
-    List<Map<String,String>> wordList = Collections.emptyList();
+    List<Map<String,String>> wordList; // 불필요한 생성자 제거
     try {
       wordList = quizApiClient.fetchSignWords(count*4);
 
