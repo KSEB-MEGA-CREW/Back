@@ -125,11 +125,12 @@ public class QuizController {
       }
 
       // 3. UserService를 통해 이메일로 사용자 정보 조회
-      var userResponse = userService.getUserInfo(email);
+      // 해당 부분도 jwt token 최적화 적용
+      Long userId = jwtUtil.extractUserId(token);
 
-      log.debug("JWT에서 사용자 ID 추출 완료: email={}, userId={}", email, userResponse.getId());
+      log.debug("JWT에서 사용자 ID 추출 완료: email={}, userId={}", email, userId);
 
-      return userResponse.getId();
+      return userId;
     } catch(UsernameNotFoundException e){
       log.error("사용자를 찾을 수 없음: {}", e.getMessage());
       throw e; // 에러는 우선 상위로 넘김
