@@ -117,7 +117,9 @@ public class QuizService {
 
     // 실제 데이터로 정답률 계산
     for (Object[] result : results) {
-      LocalDate date = (LocalDate) result[0];
+      java.sql.Date sqlDate = (java.sql.Date) result[0];
+      LocalDate date = sqlDate.toLocalDate();
+
       Long totalCorrect = (Long) result[1];
       Long totalQuestions = (Long) result[2];
 
