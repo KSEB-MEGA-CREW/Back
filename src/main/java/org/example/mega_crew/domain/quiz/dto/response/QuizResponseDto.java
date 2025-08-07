@@ -14,6 +14,10 @@ import java.util.List;
 public class QuizResponseDto { // 프론트와 변수명 일치
   private String word;
   private String signDescription;
+  private String subDescription;
   private String category;
   private List<ChoiceDto> choices;
+
+  public QuizResponseDto(String signDescription, String subDescription, String category, List<ChoiceDto> choices) {
+  }
 }

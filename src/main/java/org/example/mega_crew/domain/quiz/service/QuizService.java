@@ -40,7 +40,10 @@ public class QuizService {
           // null 값 처리
           .filter(entry -> entry.containsKey("signDescription")
               && entry.get("signDescription") != null
-              && !entry.get("signDescription").isEmpty())
+              && !entry.get("signDescription").isEmpty()
+              && entry.containsKey("subDescription")
+              && entry.get("subDescription") != null
+              && !entry.get("subDescription").isEmpty())
           .collect(Collectors.toList());
     } catch (Exception e) {
       log.error("퀴즈 API 호출 실패", e);
@@ -64,6 +67,8 @@ public class QuizService {
       String answerWord = answer.get("word");
       String answerMeaning = answer.get("meaning"); // meaning 추가 => 프론트에서 써서 추가했는데 나중에 프론트랑 얘기해서 제거 가능
       String category = answer.get("category");
+      String signDescription = answer.get("signDescription");
+      String subDescription = answer.get("subDescription");
 
       List<Map<String,String>> wrongWords = wordList.stream()
                       .filter(w -> !w.get("word").equals(answerWord))
@@ -84,7 +89,7 @@ public class QuizService {
       }
       Collections.shuffle(choices);
 
-      quizList.add(new QuizResponseDto(answer.get("signDescription"), answerWord, category, choices));
+      quizList.add(new QuizResponseDto(signDescription, subDescription, category, choices));
     }
     return quizList;
   }
