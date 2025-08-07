@@ -19,5 +19,9 @@ public class QuizResponseDto { // 프론트와 변수명 일치
   private List<ChoiceDto> choices;
 
   public QuizResponseDto(String signDescription, String subDescription, String category, List<ChoiceDto> choices) {
+    this.signDescription = signDescription;
+    this.subDescription = subDescription;
+    this.category = category;
+    this.choices = choices;
   }
 }
