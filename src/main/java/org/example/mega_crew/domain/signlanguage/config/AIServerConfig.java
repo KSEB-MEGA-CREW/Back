@@ -2,9 +2,9 @@ package org.example.mega_crew.domain.signlanguage.config;
 
 
 import lombok.Data;
+import lombok.Getter;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.example.mega_crew.global.interceptor.RestTemplateLoggingInterceptor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +16,9 @@ import org.springframework.web.client.RestTemplate;
 @EnableAsync // 비동기 처리를 위한 annotation
 @ConfigurationProperties(prefix = "ai.server")
 @Data
+@Getter
 public class AIServerConfig {
-    @Value("${ai.server.base-url}")
-    private String url;
+    private String baseUrl; // Value annotation 제거
     private String endpoint = "/analyze-frame";
     private int timeout = 5000;
     private int maxRetries = 3; // 최대 재시도 횟수

@@ -30,7 +30,7 @@ public class AsyncAIProxyService {
             // 1. 요청 준비 시간 측정
             long prepareStartTime = System.currentTimeMillis();
 
-            String url = aiServerConfig.getUrl() + aiServerConfig.getEndpoint();
+            String url = aiServerConfig.getBaseUrl() + aiServerConfig.getEndpoint();
             HttpHeaders headers = createHttpHeaders(requestId);
             Map<String, Object> requestBody = createRequestBody(request, requestId);
             HttpEntity<Map<String,Object>> entity = new HttpEntity<>(requestBody, headers);
