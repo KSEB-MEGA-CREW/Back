@@ -91,6 +91,8 @@ public class QuizService {
 
       quizList.add(new QuizResponseDto(signDescription, subDescription, category, choices));
     }
+
+    log.info("퀴즈 리스트를 반환합니다.");
     return quizList;
   }
 
