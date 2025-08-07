@@ -94,7 +94,7 @@ public class SecurityConfig {
 
                 // OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/authorization/google") // 로그인 페이지 설정
+                        .loginPage("/login") // 로그인 페이지 설정
                         .userInfoEndpoint(userInfo ->
                                 userInfo.userService(oAuth2UserService)
                         )
