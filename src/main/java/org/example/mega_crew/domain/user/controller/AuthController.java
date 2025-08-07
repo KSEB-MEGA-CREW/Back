@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
 import org.example.mega_crew.domain.user.dto.response.UserResponse;
+import org.example.mega_crew.domain.user.entity.AuthProvider;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.example.mega_crew.domain.user.service.UserService;
@@ -81,20 +82,16 @@ public class AuthController {
                     .body(ApiResponse.error("이메일 정보를 가져올 수 없습니다."));
         }
 
-        Long userId = oauth2User.getAttribute("id");
-        String token = jwtUtil.createToken(email,userId);
+        String username = oauth2User.getAttribute("name");
+        String providerId = String.valueOf(oauth2User.getAttribute("sub")); // Google의 경우
 
-        UserResponse userInfo = UserResponse.builder()
-                .id(userId)
-                .email(email)
-                .authProvider(oauth2User.getAttribute("provider"))
-                .build();
+        String token = userService.processOAuth2Login(email, username, providerId, AuthProvider.GOOGLE);
+        UserResponse userInfo = userService.getUserInfo(email);
 
         Map<String,Object> response = Map.of(
                 "token", token,
                 "userInfo", userInfo
         );
-
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
