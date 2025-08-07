@@ -26,16 +26,24 @@ public class JwtUtil {
     }
 
     // token 생성
-    public String createToken(String email){
+    public String createToken(String email, Long userId){
         Date now = new Date();
         Date validity = new Date(now.getTime() + tokenValidityMilliseconds);
 
         return Jwts.builder()
                 .setSubject(email)
+                .claim("userId", userId) // userId를 claim에 포함
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    // Token에서 사용자 ID 추출
+    public Long extractUserId(String token){
+        Claims claims = parseClaims(token);
+        Integer userIdInt = claims.get("userId", Integer.class);
+        return userIdInt != null ? userIdInt.longValue() : null;
     }
 
     // Token expiration 여부 확인

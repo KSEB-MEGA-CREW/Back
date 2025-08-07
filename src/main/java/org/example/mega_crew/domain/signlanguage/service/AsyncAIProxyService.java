@@ -74,6 +74,7 @@ public class AsyncAIProxyService {
         headers.set("X-Frame-Format", "jpeg");
         headers.set("X-Processing-Mode", "async");
         headers.set("X-Proxy-Timestamp", String.valueOf(System.currentTimeMillis()));
+        headers.set("X-Timeout", String.valueOf(aiServerConfig.getTimeout()));
         return headers;
     }
     

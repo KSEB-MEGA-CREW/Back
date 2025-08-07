@@ -31,42 +31,7 @@ public class FrameController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
-    /**
-     * 새로운 세션을 생성하고 세션 ID를 반환하는 API
-     * 프레임 전송을 시작하기 전에 호출됩니다.
-     */
-    @PostMapping("/session") // 새로운 세션 생성 엔드포인트
-    public ResponseEntity<ApiResponse<Map<String, String>>> createSession(HttpServletRequest httpRequest) {
-        try {
-            // 1. JWT에서 사용자 ID 추출 (인증된 사용자만 세션 생성 가능)
-            Long userId = extractUserIdFromRequest(httpRequest);
-
-            // 2. 새로운 세션 ID 생성
-            String sessionId = UUID.randomUUID().toString();
-
-            // 3. Redis에 세션 정보 저장 (userId와 연결)
-            redisSessionService.createSession(sessionId, userId);
-
-            log.info("새 세션 생성 완료: sessionId={}, userId={}", sessionId, userId);
-
-            // 4. 생성된 세션 ID를 응답으로 반환
-            return ResponseEntity.ok(ApiResponse.success(Map.of("sessionId", sessionId)));
-
-        } catch (UsernameNotFoundException e) {
-            log.error("세션 생성 실패: 사용자를 찾을 수 없음 - {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error("사용자를 찾을 수 없습니다."));
-        } catch (IllegalArgumentException e) {
-            log.error("세션 생성 실패: JWT 토큰 문제 - {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.error(e.getMessage()));
-        } catch (Exception e) {
-            log.error("세션 생성 중 오류 발생", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("세션 생성 중 오류가 발생했습니다."));
-        }
-    }
-
+    // 세션 처리 단순화 -> session 생성용 엔드포인트 제거
     @PostMapping("/analyze")
     public ResponseEntity<ApiResponse<FrameSubmissionResponse>> submitFrame(
             @Valid @RequestBody FrameRequest request,
@@ -201,14 +166,15 @@ public class FrameController {
             }
 
             // 3. UserService를 통해 이메일로 사용자 정보 조회
-            var userResponse = userService.getUserInfo(email);
+            // => DB 조회 없이 토큰에서 직접 추출 => 최적화
+            // var userResponse = userService.getUserInfo(email);
+            Long userId = jwtUtil.extractUserId(token); // 토큰에서 직접 추출
+            if(userId==null){
+                throw new IllegalArgumentException("토큰에서 사용자 ID를 찾을 수 없습니다.");
+            }
+            log.debug("JWT에서 사용자 ID 추출 완료: email={}, userId={}", email, userId);
 
-            log.debug("JWT에서 사용자 ID 추출 완료: email={}, userId={}", email, userResponse.getId());
-
-            return userResponse.getId();
-        } catch(UsernameNotFoundException e){
-            log.error("사용자를 찾을 수 없음: {}", e.getMessage());
-            throw e; // 에러는 우선 상위로 넘김
+            return userId;
         } catch(Exception e){
             log.error("JWT 토큰 처리 오류: {}",e.getMessage());
             throw new IllegalArgumentException("유효하지 않은 JWT 토큰입니다.", e);

@@ -72,6 +72,9 @@ public class SecurityConfig {
                         // 퀴즈 관련 (인증 불필요한 경우)
                         .requestMatchers("/api/quiz/**").permitAll()
 
+                        // frame 요청 관련 추가
+                        .requestMatchers("/api/signlanguage/**").permitAll()
+
                         // WebSocket 관련 - 단순화
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/websocket/**").permitAll()
