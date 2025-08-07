@@ -70,6 +70,7 @@ public class QuizApiClient {
     map.put("word", getSafeText(item, "title"));
     map.put("signDescription", getSafeText(item, "signDescription"));
     map.put("category", getSafeText(item, "categoryType")); // categoryType으로 변경!
+    map.put("subDescription", getSafeText(item, "subDescription"));
     return map;
   }
 
