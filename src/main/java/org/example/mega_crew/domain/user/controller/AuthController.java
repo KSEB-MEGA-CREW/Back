@@ -3,6 +3,7 @@ package org.example.mega_crew.domain.user.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
 import org.example.mega_crew.domain.user.dto.response.UserResponse;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -64,9 +66,14 @@ public class AuthController {
         String token = jwtUtil.extractTokenFromRequest(request);
         Long userId = jwtUtil.extractUserId(token);
         String email = jwtUtil.extractEmail(token);
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
+
         UserResponse userInfo = UserResponse.builder()
                 .id(userId)
                 .email(email)
+                .username(user.getUsername())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfo));
