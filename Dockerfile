@@ -1,35 +1,33 @@
-# 멀티스테이지 빌드 - 캐시 최적화, 이미지 단계별 빌드
-FROM gradle:7.6-jdk17 AS cache
-WORKDIR /build
-# 의존성 캐시 최적화를 위해 build.gradle만 먼저 복사
-COPY build.gradle settings.gradle gradlew ./
-COPY gradle ./gradle
-RUN ./gradlew dependencies --no-daemon
+# Dockerfile.dev
+# 개발 환경용 Dockerfile (빠른 빌드)
 
-# 빌드 스테이지
-FROM cache AS builder
-# 소스코드 복사
-COPY src ./src
-# 빌드 실행 (캐시된 의존성 활용)
-RUN ./gradlew clean build -x test --no-daemon
+FROM openjdk:17-jdk-slim
 
-# 실행 스테이지 - Distroless 이미지 사용
-FROM gcr.io/distroless/java17-debian11
 WORKDIR /app
 
-# 빌드된 JAR만 복사
-COPY --from=builder /build/build/libs/*.jar app.jar
+# 개발용 도구 설치
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    vim \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
 
-# Distroless는 이미 non-root 사용자 설정됨
+# Gradle 설치 (선택사항 - 로컬 빌드용)
+RUN wget https://services.gradle.org/distributions/gradle-8.5-bin.zip \
+    && unzip gradle-8.5-bin.zip \
+    && mv gradle-8.5 /opt/gradle \
+    && rm gradle-8.5-bin.zip
+
+ENV PATH="/opt/gradle/bin:${PATH}"
+
+# 소스코드 복사 (개발 시 볼륨 마운트 사용 권장)
+COPY . .
+
+# 개발용 빌드
+RUN ./gradlew build -x test --no-daemon
+
 EXPOSE 8080
 
-# 현재 개발 중이므로 => -Dspring.profiles.active=dev
-# 추후 운영 시 => prod
-# JVM 최적화 옵션
-ENTRYPOINT ["java", \
-           "-XX:+UseContainerSupport", \
-           "-XX:MaxRAMPercentage=75.0", \
-           "-XX:+UseG1GC", \
-           "-XX:+UseStringDeduplication", \
-           "-Dspring.profiles.active=dev", \
-           "-jar", "app.jar"]
+# 개발용 실행 (Hot Reload 지원)
+CMD ["./gradlew", "bootRun", "--no-daemon"]
