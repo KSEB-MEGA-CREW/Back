@@ -10,87 +10,214 @@
 # 4. 새로운 이미지로 컨테이너 실행
 # ==========================================================
 
+set -e  # 에러 발생시 스크립트 중단
+
+# 색상 정의
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# 로그 함수
+log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
+log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
+log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+
 # ----------------------------------------------------------
-# 1. 환경 변수 설정
+# 1. 환경 변수 확인 및 로드
 # ----------------------------------------------------------
 
-# AWS 계정 ID, ECR 리전, 리포지토리 이름 등을 환경 변수로 정의
-# ECR 이미지 URI는 빌드/푸시 스크립트와 동일해야 합니다.
-AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}
-AWS_REGION=${AWS_REGION}
-ECR_REPOSITORY_NAME=${ECR_REPOSITORY_NAME}
-IMAGE_TAG=${IMAGE_TAG:-latest} # 기본값으로 latest 사용
+log_info "환경 설정 확인 중..."
 
-# 환경 변수가 올바르게 설정되었는지 확인
-if [[ -z "$AWS_ACCOUNT_ID" || -z "$AWS_REGION" || -z "$ECR_REPOSITORY_NAME" ]]; then
-  echo "오류: 필수 환경 변수(AWS_ACCOUNT_ID, AWS_REGION, ECR_REPOSITORY_NAME)가 설정되지 않았습니다."
-  exit 1
+if [ ! -f ".env" ]; then
+    log_error ".env 파일이 없습니다. .env.example을 참고하여 생성하세요."
+    exit 1
 fi
 
-# ECR 이미지 URI 생성
-ECR_REPOSITORY_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY_NAME}:${IMAGE_TAG}"
+# .env 파일 로드
+source .env
 
-# 컨테이너 이름 (이름이 고정되어야 중지/삭제가 용이)
-CONTAINER_NAME="mega-crew-app"
+# 필수 환경 변수 확인
+REQUIRED_VARS=(
+    "AWS_ACCOUNT_ID"
+    "AWS_REGION"
+    "ECR_REPOSITORY"
+    "DB_PASSWORD"
+    "JWT_SECRET"
+)
+
+for var in "${REQUIRED_VARS[@]}"; do
+    if [ -z "${!var}" ]; then
+        log_error "필수 환경 변수 $var가 설정되지 않았습니다."
+        exit 1
+    fi
+done
+
+# 변수 설정
+IMAGE_TAG=${IMAGE_TAG:-latest}
+ECR_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG}"
+
+log_success "환경 설정 확인 완료"
+log_info "배포할 이미지: $ECR_URI"
 
 # ----------------------------------------------------------
-# 2. AWS ECR 로그인
+# 2. 필수 도구 확인
 # ----------------------------------------------------------
 
-echo "AWS ECR에 로그인 중..."
-# EC2 인스턴스의 IAM Role을 사용하여 ECR에 로그인
-aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-if [ $? -ne 0 ]; then
-  echo "오류: AWS ECR 로그인에 실패했습니다. EC2 인스턴스의 IAM 역할 및 권한을 확인하세요."
-  exit 1
+log_info "필수 도구 확인 중..."
+
+if ! command -v docker &> /dev/null; then
+    log_error "Docker가 설치되지 않았습니다."
+    exit 1
 fi
-echo "AWS ECR 로그인 성공."
 
-# ----------------------------------------------------------
-# 3. ECR에서 최신 이미지 풀(pull)
-# ----------------------------------------------------------
-
-echo "ECR에서 최신 이미지(${ECR_REPOSITORY_URI})를 풀(pull)합니다."
-docker pull ${ECR_REPOSITORY_URI}
-if [ $? -ne 0 ]; then
-  echo "오류: Docker 이미지 풀(pull)에 실패했습니다. 이미지 태그 또는 ECR 설정을 확인하세요."
-  exit 1
+if ! command -v docker-compose &> /dev/null; then
+    log_error "Docker Compose가 설치되지 않았습니다."
+    exit 1
 fi
-echo "Docker 이미지 풀(pull) 성공."
 
+if ! command -v aws &> /dev/null; then
+    log_error "AWS CLI가 설치되지 않았습니다."
+    exit 1
+fi
+
+log_success "필수 도구 확인 완료"
 
 # ----------------------------------------------------------
-# 4. 기존 컨테이너 중지 및 삭제
+# 3. 디렉토리 생성
 # ----------------------------------------------------------
 
-echo "기존 컨테이너를 중지하고 삭제합니다."
-# 현재 실행 중인 컨테이너가 있는지 확인
-if [ "$(docker ps -q -f name=${CONTAINER_NAME})" ]; then
-  echo "기존 컨테이너(${CONTAINER_NAME})를 중지합니다."
-  docker stop ${CONTAINER_NAME}
-  echo "기존 컨테이너를 삭제합니다."
-  docker rm ${CONTAINER_NAME}
+log_info "필요한 디렉토리 생성 중..."
+
+DIRECTORIES=(
+    "/opt/mega-crew/logs"
+    "/opt/mega-crew/mysql-data"
+    "/opt/mega-crew/redis-data"
+)
+
+for dir in "${DIRECTORIES[@]}"; do
+    if [ ! -d "$dir" ]; then
+        sudo mkdir -p "$dir"
+        sudo chown 1000:1000 "$dir" 2>/dev/null || true
+        log_info "디렉토리 생성: $dir"
+    fi
+done
+
+# ----------------------------------------------------------
+# 4. AWS ECR 로그인
+# ----------------------------------------------------------
+
+log_info "AWS ECR 로그인 중..."
+
+aws ecr get-login-password --region ${AWS_REGION} | \
+    docker login --username AWS --password-stdin \
+    ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+
+if [ $? -eq 0 ]; then
+    log_success "ECR 로그인 성공"
 else
-  echo "실행 중인 기존 컨테이너가 없습니다."
+    log_error "ECR 로그인 실패. IAM 권한을 확인하세요."
+    exit 1
 fi
 
-
 # ----------------------------------------------------------
-# 5. 새로운 컨테이너 실행
+# 5. 최신 이미지 풀
 # ----------------------------------------------------------
 
-echo "새로운 이미지로 컨테이너를 실행합니다."
-# 새로운 Docker 컨테이너 실행
-docker run -d \
-  --name ${CONTAINER_NAME} \
-  -p 8080:8080 \
-  -e SPRING_PROFILES_ACTIVE=prod \
-  -e JDBC_URL="jdbc:mysql://rds-endpoint:3306/db_name" \
-  -e JDBC_USERNAME="username" \
-  -e JDBC_PASSWORD="password" \
-  ${ECR_REPOSITORY_URI}
-if [ $? -ne 0 ]; then
-  echo "오류: 새로운 컨테이너 실행에 실패했습니다."
-  exit 1
+log_info "최신 이미지 다운로드 중..."
+
+docker pull $ECR_URI
+
+if [ $? -eq 0 ]; then
+    log_success "이미지 다운로드 성공: $ECR_URI"
+else
+    log_error "이미지 다운로드 실패: $ECR_URI"
+    exit 1
 fi
-echo "새로운 컨테이너(${CONTAINER_NAME})가 성공적으로 실행되었습니다."
+
+# ----------------------------------------------------------
+# 6. 기존 서비스 중지
+# ----------------------------------------------------------
+
+log_info "기존 서비스 중지 중..."
+
+if [ -f "docker-compose.prod.yml" ]; then
+    if docker-compose -f docker-compose.prod.yml ps -q 2>/dev/null | grep -q .; then
+        docker-compose -f docker-compose.prod.yml down --remove-orphans
+        log_success "기존 서비스 중지 완료"
+    else
+        log_info "실행 중인 서비스가 없습니다"
+    fi
+else
+    log_error "docker-compose.prod.yml 파일이 없습니다."
+    exit 1
+fi
+
+# ----------------------------------------------------------
+# 7. 새 서비스 시작
+# ----------------------------------------------------------
+
+log_info "새 서비스 시작 중..."
+
+docker-compose -f docker-compose.prod.yml up -d
+
+if [ $? -eq 0 ]; then
+    log_success "서비스 시작 성공"
+else
+    log_error "서비스 시작 실패"
+    # 로그 출력
+    docker-compose -f docker-compose.prod.yml logs
+    exit 1
+fi
+
+# ----------------------------------------------------------
+# 8. 헬스체크
+# ----------------------------------------------------------
+
+log_info "애플리케이션 헬스체크 대기 중..."
+
+MAX_ATTEMPTS=30
+ATTEMPT=0
+
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    if curl -f http://localhost:8080/actuator/health 2>/dev/null; then
+        log_success "애플리케이션이 정상적으로 시작되었습니다!"
+        break
+    fi
+
+    ATTEMPT=$((ATTEMPT + 1))
+    log_info "헬스체크 시도 $ATTEMPT/$MAX_ATTEMPTS..."
+    sleep 10
+done
+
+if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+    log_error "애플리케이션이 정상적으로 시작되지 않았습니다."
+    log_info "로그 확인: docker-compose -f docker-compose.prod.yml logs app"
+    exit 1
+fi
+
+# ----------------------------------------------------------
+# 9. 정리 작업
+# ----------------------------------------------------------
+
+log_info "사용하지 않는 Docker 이미지 정리 중..."
+docker image prune -f
+
+# ----------------------------------------------------------
+# 10. 배포 완료
+# ----------------------------------------------------------
+
+log_success "========================================="
+log_success "MEGA CREW 배포 완료!"
+log_success "========================================="
+log_info "애플리케이션 URL: http://$(curl -s ifconfig.me):8080"
+log_info "헬스체크 URL: http://localhost:8080/actuator/health"
+log_info ""
+log_info "유용한 명령어:"
+log_info "  로그 확인: docker-compose -f docker-compose.prod.yml logs -f app"
+log_info "  상태 확인: docker-compose -f docker-compose.prod.yml ps"
+log_info "  중지: docker-compose -f docker-compose.prod.yml down"
+log_info ""
+log_warning "배포 완료 후 모니터링을 확인하세요."
