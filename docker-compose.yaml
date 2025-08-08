@@ -1,69 +1,88 @@
-# version: '3.8' <- 에러 (Compose Specification 사용으로 불필요)
-# localhost -> container명
-# 네트워크 호스트명이 container명이 되므로 변경 필수
+# docker-compose.yml
+# MySQL, Redis, Spring Boot 모두 컨테이너로 실행
+
 services:
   # Spring Boot 애플리케이션 서버
   app:
-    image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/slt-project/backend:latest
+    build: .  # ECR 이미지 대신 로컬 빌드 사용 => 개발 환경의 편의상
     container_name: mega-crew-app
     ports:
-      - "8080:8080"  # HTTP 포트
+      - "8080:8080"
     environment:
-      # Spring 프로파일 설정 (개발환경)
-      - SPRING_PROFILES_ACTIVE=dev
-      
-      # 데이터베이스 연결 설정 (개발환경 : 데이터베이스명 통일)
-      - DB_URL=jdbc:mysql://db:3306/slt_user_local_db?allowPublicKeyRetrieval=true&useSSL=false
-      - DB_USERNAME=${DB_USERNAME}
+      # Spring 프로파일 설정 (application-docker.yaml과 일치)
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
+
+      # 데이터베이스 연결 설정 (application-docker.yaml과 일치)
+      - DB_URL=jdbc:mysql://db:3306/mega_crew?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      - DB_USERNAME=${DB_USERNAME:-root}
       - DB_PASSWORD=${DB_PASSWORD}
-      - DDL_AUTO=${DDL_AUTO}
-      - SHOW_SQL=${SHOW_SQL} # SQL log 활성화
-      
+      - DB_POOL_SIZE=${DB_POOL_SIZE:-20}
+      - DDL_AUTO=${DDL_AUTO:-update}
+      - SHOW_SQL=${SHOW_SQL:-false}
+
+      # Redis 연결 설정 (application-docker.yaml과 일치)
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DATABASE=${REDIS_DATABASE:-0}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT:-1000}
+
       # JWT 인증 설정
       - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRATION=${JWT_EXPIRATION}
-      
-      # Redis 캐시 서버 연결 ()
-      - REDIS_HOST=redis # localhost -> redis
-      - REDIS_PORT=${REDIS_PORT}
-      
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+
       # 애플리케이션 URL
-      - BASE_URL=${BASE_URL}
-      - FRONTEND_URL=${FRONTEND_URL}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
 
-      # CORS (개발환경용 관대한 설정)
-      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
-      
-      # OAuth2 설정 (테스트의 경우 더미값 허용 설정 추가하기)
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
-      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
-      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
-      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      # OAuth2 설정
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID:-}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET:-}
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID:-}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET:-}
 
-      # AI server (개발환경)
-      - AI_SERVER_URL=${AI_SERVER_URL}
-    
+      # AI 서버 설정 (application-docker.yaml과 일치)
+      - AI_SERVER_BASE_URL=${AI_SERVER_BASE_URL:-http://ai-server:5000}
+      - AI_SERVER_TIMEOUT=${AI_SERVER_TIMEOUT:-5000}
+      - AI_SERVER_MAX_RETRIES=${AI_SERVER_MAX_RETRIES:-3}
+      - AI_SERVER_MAX_POOLS=${AI_SERVER_MAX_POOLS:-100}
+
+      # 수화 API 설정
+      - SL_API_KEY=${SL_API_KEY:-}
+      - SL_API_URL=${SL_API_URL:-}
+
+      # 파일 업로드 설정
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-15MB}
+      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-15MB}
+
+      # 프레임 검증 설정
+      - FRAME_MAX_SIZE_MB=${FRAME_MAX_SIZE_MB:-10}
+      - FRAME_MIN_SIZE_KB=${FRAME_MIN_SIZE_KB:-1}
+      - FRAME_MAX_TIMESTAMP_DIFF_MINUTES=${FRAME_MAX_TIMESTAMP_DIFF_MINUTES:-5}
+
     # 의존성 설정 (DB, Redis 먼저 시작)
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
-    
-    # 컨테이너 재시작 정책
+
     restart: unless-stopped
-    
-    # 헬스체크 설정
+
+    # Spring Boot 헬스체크 (application-docker.yml actuator 설정 반영)
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
-    
-    # 네트워크 연결
+      start_period: 90s  # Spring Boot 시작 시간 고려하여 증가
+
+    # 로그 볼륨 마운트 (application-docker.yml 로깅 설정 반영)
+    volumes:
+      - ./logs:/app/logs
+
     networks:
       - app-network
 
@@ -71,26 +90,32 @@ services:
   db:
     image: mysql:8.0
     container_name: mega-crew-db
-    command: --default-authentication-plugin=mysql_native_password # MySQL 인증 플러그인 추가
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone='+09:00'
     environment:
       # MySQL 루트 패스워드
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-      # 기본 데이터베이스 생성
-      - MYSQL_DATABASE=slt_user_local_db
+      # 기본 데이터베이스 생성 (application-docker.yml과 일치)
+      - MYSQL_DATABASE=mega_crew
       # 문자셋 설정 (한글 지원)
       - MYSQL_CHARACTER_SET_SERVER=utf8mb4
       - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
-    
+      # 시간대 설정
+      - TZ=Asia/Seoul
+
     ports:
-      - "3307:3306"  # 외부 접근용 (개발/디버깅) local과 충돌하지 않도록 주의
-    
+      - "3306:3306"  # 기본 포트 사용 (개발 편의성)
+
     # 데이터 영속성 보장
     volumes:
       - mysql_data:/var/lib/mysql
-    # - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # 초기 데이터 설정
-    
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro  # 초기화 스크립트
+
     restart: unless-stopped
-    
+
     # MySQL 헬스체크
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
@@ -98,46 +123,49 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
-    
+
     networks:
       - app-network
 
-  # Redis 캐시 서버 (세션 관리)
+  # Redis 캐시 서버
   redis:
     image: redis:7-alpine
     container_name: mega-crew-redis
-    command: redis-server --appendonly yes --save 60 1000  # 개발환경용 빈번한 저장
-    
+    command: redis-server --appendonly yes --save 900 1 --save 300 10 --save 60 10000
+
     ports:
       - "6379:6379"  # 외부 접근용 (개발/모니터링)
-    
+
     # Redis 데이터 영속성
     volumes:
       - redis_data:/data
-    
+
     restart: unless-stopped
-    
+
     # Redis 헬스체크
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
-    
+
     networks:
       - app-network
 
-# 네트워크 설정 (컨테이너 간 통신)
+# 컨테이너 간 통신 네트워크
 networks:
   app-network:
     driver: bridge
+    name: mega-crew-network
 
-# 데이터 볼륨 (데이터 영속성 보장)
+# 데이터 영속성을 위한 볼륨
 volumes:
   # MySQL 데이터 저장소
   mysql_data:
     driver: local
-  
-  # Redis 데이터 저장소  
+    name: mega-crew-mysql-data
+
+  # Redis 데이터 저장소
   redis_data:
     driver: local
+    name: mega-crew-redis-data

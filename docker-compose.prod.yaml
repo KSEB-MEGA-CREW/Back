@@ -1,0 +1,237 @@
+# docker-compose.prod.yml
+# EC2 운영 환경용 Docker Compose 설정
+
+services:
+  # Spring Boot 애플리케이션 서버 (운영 환경)
+  app:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.ap-northeast-2.amazonaws.com/${ECR_REPOSITORY}:${IMAGE_TAG:-latest}
+    container_name: mega-crew-app-prod
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring 프로파일 설정 (운영 환경)
+      - SPRING_PROFILES_ACTIVE=docker-prod
+
+      # 데이터베이스 연결 설정 (운영 환경)
+      - DB_URL=jdbc:mysql://db:3306/mega_crew?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+      - DB_USERNAME=${DB_USERNAME:-root}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_POOL_SIZE=${DB_POOL_SIZE:-20}
+      - DDL_AUTO=${DDL_AUTO:-validate}  # 운영환경에서는 validate 권장
+      - SHOW_SQL=${SHOW_SQL:-false}    # 운영환경에서는 false
+
+      # Redis 연결 설정
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - REDIS_DATABASE=${REDIS_DATABASE:-0}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT:-1000}
+
+      # JWT 인증 설정 (운영 환경 강화)
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+
+      # 애플리케이션 URL (운영 환경)
+      - FRONTEND_URL=${FRONTEND_URL}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+
+      # OAuth2 설정 (운영 환경 - 필수값)
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
+      - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+
+      # AI 서버 설정 (운영 환경)
+      - AI_SERVER_BASE_URL=${AI_SERVER_BASE_URL}
+      - AI_SERVER_TIMEOUT=${AI_SERVER_TIMEOUT:-5000}
+      - AI_SERVER_MAX_RETRIES=${AI_SERVER_MAX_RETRIES:-3}
+      - AI_SERVER_MAX_POOLS=${AI_SERVER_MAX_POOLS:-100}
+
+      # 수화 API 설정 (운영 환경)
+      - SL_API_KEY=${SL_API_KEY}
+      - SL_API_URL=${SL_API_URL}
+
+      # 파일 업로드 설정
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-15MB}
+      - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-15MB}
+
+      # 프레임 검증 설정
+      - FRAME_MAX_SIZE_MB=${FRAME_MAX_SIZE_MB:-10}
+      - FRAME_MIN_SIZE_KB=${FRAME_MIN_SIZE_KB:-1}
+      - FRAME_MAX_TIMESTAMP_DIFF_MINUTES=${FRAME_MAX_TIMESTAMP_DIFF_MINUTES:-5}
+
+      # AWS 설정 (운영 환경)
+      - AWS_REGION=${AWS_REGION:-ap-northeast-2}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+
+    # 의존성 설정
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    # 운영 환경 헬스체크 (더 엄격한 설정)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 120s  # 운영환경에서 충분한 시작 시간 확보
+
+    # 운영 환경 로그 - 호스트 디렉토리 마운트
+    volumes:
+      - /opt/mega-crew/logs:/app/logs
+      - /opt/mega-crew/config:/app/config:ro  # 추가 설정 파일 (선택사항)
+
+    # 리소스 제한 (운영 환경)
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+    networks:
+      - app-network
+
+    # 로그 설정 (운영 환경)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  # MySQL 데이터베이스 서버 (운영 환경)
+  db:
+    image: mysql:8.0
+    container_name: mega-crew-db-prod
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone='+09:00'
+      --innodb-buffer-pool-size=512M
+      --max-connections=200
+      --slow-query-log=1
+      --slow-query-log-file=/var/log/mysql/slow.log
+      --long-query-time=2
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=mega_crew
+      - MYSQL_CHARACTER_SET_SERVER=utf8mb4
+      - MYSQL_COLLATION_SERVER=utf8mb4_unicode_ci
+      - TZ=Asia/Seoul
+
+    # 운영환경에서는 외부 포트 노출하지 않음 (보안)
+    # ports:
+    #   - "3306:3306"
+
+    # 운영 환경 데이터 영속성 - 호스트 디렉토리 사용
+    volumes:
+      - /opt/mega-crew/mysql-data:/var/lib/mysql
+      - /opt/mega-crew/mysql-logs:/var/log/mysql
+      - /opt/mega-crew/mysql-config:/etc/mysql/conf.d:ro
+      # 운영환경에서는 초기화 스크립트 제거 (데이터 보호)
+
+    restart: unless-stopped
+
+    # 운영 환경 MySQL 헬스체크
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    # 리소스 제한
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+    networks:
+      - app-network
+
+    # 로그 설정
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # Redis 캐시 서버 (운영 환경)
+  redis:
+    image: redis:7-alpine
+    container_name: mega-crew-redis-prod
+    command: >
+      redis-server
+      --appendonly yes
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:-}
+
+    # 운영환경에서는 외부 포트 노출하지 않음 (보안)
+    # ports:
+    #   - "6379:6379"
+
+    # 운영 환경 데이터 영속성 - 호스트 디렉토리 사용
+    volumes:
+      - /opt/mega-crew/redis-data:/data
+      - /opt/mega-crew/redis-config:/usr/local/etc/redis:ro
+
+    restart: unless-stopped
+
+    # Redis 헬스체크
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+    # 리소스 제한
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+    networks:
+      - app-network
+
+    # 로그 설정
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+# 운영 환경 네트워크 (보안 강화)
+networks:
+  app-network:
+    driver: bridge
+    name: mega-crew-network-prod
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# 운영 환경에서는 named volume 사용하지 않음 (호스트 디렉토리 사용)
+volumes: {}
