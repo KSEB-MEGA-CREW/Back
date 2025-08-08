@@ -1,33 +1,20 @@
-# Dockerfile.dev
-# 개발 환경용 Dockerfile (빠른 빌드)
+# Dockerfile
+FROM gradle:7.6-jdk17 AS builder
+WORKDIR /build
+COPY . .
+RUN ./gradlew clean build -x test --no-daemon
 
 FROM openjdk:17-jdk-slim
-
 WORKDIR /app
 
-# 개발용 도구 설치
-RUN apt-get update && apt-get install -y \
-    curl \
-    wget \
-    vim \
-    net-tools \
-    && rm -rf /var/lib/apt/lists/*
+# 보안 강화
+RUN apt-get update && apt-get install -y curl && \
+    rm -rf /var/lib/apt/lists/* && \
+    addgroup --system spring && \
+    adduser --system --group spring
 
-# Gradle 설치 (선택사항 - 로컬 빌드용)
-#RUN wget https://services.gradle.org/distributions/gradle-8.5-bin.zip \
-#    && unzip gradle-8.5-bin.zip \
-#    && mv gradle-8.5 /opt/gradle \
-#    && rm gradle-8.5-bin.zip
-
-ENV PATH="/opt/gradle/bin:${PATH}"
-
-# 소스코드 복사 (개발 시 볼륨 마운트 사용 권장)
-COPY . .
-
-# 개발용 빌드
-RUN ./gradlew build -x test --no-daemon
-
+COPY --from=builder /build/build/libs/*.jar app.jar
+USER spring:spring
 EXPOSE 8080
 
-# 개발용 실행 (Hot Reload 지원)
-CMD ["./gradlew", "bootRun", "--no-daemon"]
+ENTRYPOINT ["java", "-Xmx512m", "-Dspring.profiles.active=docker", "-jar", "app.jar"]
