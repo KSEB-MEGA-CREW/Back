@@ -43,7 +43,7 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
 
       // HearingStatus 처리 추가
       HearingStatus hearingStatus = HearingStatus.NORMAL;
-      if ("DEAF".equals(request.getHearing())) {
+      if ("deaf".equalsIgnoreCase(request.getHearing())) {
          hearingStatus = HearingStatus.DEAF;
       }
 
