@@ -14,10 +14,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Gradle 설치 (선택사항 - 로컬 빌드용)
-RUN wget https://services.gradle.org/distributions/gradle-8.5-bin.zip \
-    && unzip gradle-8.5-bin.zip \
-    && mv gradle-8.5 /opt/gradle \
-    && rm gradle-8.5-bin.zip
+#RUN wget https://services.gradle.org/distributions/gradle-8.5-bin.zip \
+#    && unzip gradle-8.5-bin.zip \
+#    && mv gradle-8.5 /opt/gradle \
+#    && rm gradle-8.5-bin.zip
 
 ENV PATH="/opt/gradle/bin:${PATH}"
 
