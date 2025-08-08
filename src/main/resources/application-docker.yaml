@@ -3,7 +3,7 @@
 
 # ===== 서버 설정 =====
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${APPLICATION_SERVER_PORT:8080}
   servlet:
     context-path: /
     encoding:
@@ -140,10 +140,11 @@ app:
 cors:
   allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
 
-# ===== AI 서버 설정 =====
+# ===== AI 서버 설정 (환경변수명 통일) =====
 ai:
   server:
     base-url: ${AI_SERVER_BASE_URL:http://ai-server:5000}
+    endpoint: ${AI_SERVER_ENDPOINT:/analyze-frame}
     timeout: ${AI_SERVER_TIMEOUT:5000}
     max-retries: ${AI_SERVER_MAX_RETRIES:3}
     max-pools: ${AI_SERVER_MAX_POOLS:100}

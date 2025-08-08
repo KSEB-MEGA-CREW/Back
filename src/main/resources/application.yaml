@@ -7,7 +7,7 @@ server:
     enabled: true
   error:
     whitelabel:
-      enabled: true # 개발환경에서는 에러 페이지 표시
+      enabled: true
 
 # =============================================================================
 # APPLICATION CONFIGURATION
@@ -21,13 +21,10 @@ app:
 # SECURITY & JWT CONFIGURATION
 # =============================================================================
 jwt:
-  secret: ${JWT_SECRET:mySecretKeyForJwtTokenGenerationAndValidation12345678901234567890}
-  expiration: ${JWT_EXPIRATION:3600000} # 1 hour
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 spring:
-  # ===========================================================================
-  # MAIN CONFIGURATION
-  # ===========================================================================
   main:
     allow-circular-references: true
 
@@ -87,18 +84,16 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-
-
   # ===========================================================================
   # DATABASE CONFIGURATION
   # ===========================================================================
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:password}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: ${DB_POOL_SIZE:10} # 개발환경용 pool size 추후 증대 필요
+      maximum-pool-size: ${DB_POOL_SIZE:10}
       minimum-idle: 2
       connection-timeout: 20000
       idle-timeout: 300000
@@ -108,7 +103,7 @@ spring:
   # ===========================================================================
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:update} # 개발: create, 운영: validate
+      ddl-auto: ${DDL_AUTO:update}
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
     properties:
@@ -117,12 +112,12 @@ spring:
         use_sql_comments: true
 
   # ===========================================================================
-  # REDIS CONFIGURATION (수정된 부분)
+  # REDIS CONFIGURATION
   # ===========================================================================
   data:
     redis:
       host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379} # MySQL과 충돌 방지 6379 => 표준 Redis 포트
+      port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       database: 0
       timeout: 3000ms
@@ -134,21 +129,12 @@ spring:
           max-wait: -1ms
 
   # ===========================================================================
-  # SESSION CONFIGURATION (수정된 부분)
-  # ===========================================================================
-  session:
-    store-type: redis
-    timeout: 30m
-    redis:
-      namespace: spring:session
-
-  # ===========================================================================
   # FILE UPLOAD CONFIGURATION
   # ===========================================================================
   servlet:
     multipart:
-      max-file-size: 100MB
-      max-request-size: 100MB
+      max-file-size: ${MAX_FILE_SIZE:100MB}
+      max-request-size: ${MAX_REQUEST_SIZE:100MB}
 
 # =============================================================================
 # API DOCUMENTATION CONFIGURATION
@@ -160,12 +146,6 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui.html
-    config-url: /v3/api-docs/swagger-config
-    url: /v3/api-docs
-    disable-swagger-default-url: true
-  show-actuator: false
-  default-consumes-media-type: application/json
-  default-produces-media-type: application/json
 
 # =============================================================================
 # EXTERNAL API CONFIGURATION
@@ -176,39 +156,33 @@ sign:
     key: ${SL_API_KEY}
     url: ${SL_API_URL}
 
-# AI Server
+# AI Server 설정 (환경변수명 통일)
 ai:
   server:
-    base-url: ${AI_SERVER_URL} # ml server의 ec2의 public ip로 변경
-    endpoint: /analyze-frame
-    timeout: 100000 # 100s
-    max-retries: 3
+    base-url: ${AI_SERVER_BASE_URL:http://localhost:5000}
+    endpoint: ${AI_SERVER_ENDPOINT:/analyze-frame}
+    timeout: ${AI_SERVER_TIMEOUT:100000}
+    max-retries: ${AI_SERVER_MAX_RETRIES:3}
+    max-pools: ${AI_SERVER_MAX_POOLS:100}
 
 # =============================================================================
 # CORS CONFIGURATION
 # =============================================================================
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080}
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:8080}
   allowed-methods: GET,POST,PUT,DELETE,OPTIONS,PATCH
   allowed-headers: "*"
   allow-credentials: true
   max-age: 3600
 
 # =============================================================================
-# CUSTOM SESSION CONFIGURATION
-# =============================================================================
-session:
-  timeout-minutes: 30
-  cleanup-interval: 5
-
-# =============================================================================
 # LOGGING CONFIGURATION
 # =============================================================================
 logging:
   level:
+    org.example.mega_crew: ${LOG_LEVEL_APP:DEBUG}
     org.springframework.security: ${LOG_LEVEL_SECURITY:INFO}
     org.springframework.security.oauth2: ${LOG_LEVEL_OAUTH2:DEBUG}
-    org.example.mega_crew: ${LOG_LEVEL_APP:DEBUG}
     org.hibernate.SQL: ${LOG_LEVEL_SQL:DEBUG}
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_PARAMS:TRACE}
     org.springframework.web.client.RestTemplate: ${LOG_LEVEL_HTTP:DEBUG}
@@ -223,6 +197,6 @@ logging:
 aws:
   access-key: ${AWS_ACCESS_KEY}
   secret-key: ${AWS_SECRET_KEY}
-  region: ap-northeast-2
+  region: ${AWS_REGION:ap-northeast-2}
   s3:
     bucket: ${S3_BUCKET_NAME}

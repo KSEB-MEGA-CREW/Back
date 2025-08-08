@@ -9,6 +9,8 @@ services:
     ports:
       - "8080:8080"
     environment:
+      # 서버 포트 설정 추가
+      - APPLICATION_SERVER_PORT=${APPLICATION_SERVER_PORT:-8080}
       # Spring 프로파일 설정 (application-docker.yaml과 일치)
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-docker}
 
