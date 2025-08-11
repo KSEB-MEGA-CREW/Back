@@ -2,6 +2,7 @@
 FROM gradle:7.6-jdk17 AS builder
 WORKDIR /build
 COPY . .
+RUN chmod +x ./gradlew  # 권한 부여 추가
 RUN ./gradlew clean build -x test --no-daemon
 
 FROM openjdk:17-jdk-slim
