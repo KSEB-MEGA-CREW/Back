@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 
@@ -15,7 +16,7 @@ import java.util.Date;
 @Slf4j
 public class JwtUtil {
 
-    private final Key key;
+    private final SecretKey key;
     private final long tokenValidityMilliseconds;
 
 
@@ -30,12 +31,12 @@ public class JwtUtil {
         Date now = new Date();
         Date validity = new Date(now.getTime() + tokenValidityMilliseconds);
 
-        return Jwts.builder()
-                .setSubject(email)
+        return Jwts.builder() // jwt 최신 버전에 맞춰 메서드 수정
+                .subject(email)
                 .claim("userId", userId) // userId를 claim에 포함
-                .setIssuedAt(now)
-                .setExpiration(validity)
-                .signWith(key, SignatureAlgorithm.HS256)
+                .issuedAt(now)
+                .expiration(validity)
+                .signWith(key)
                 .compact();
     }
 
@@ -82,21 +83,16 @@ public class JwtUtil {
 
     // token parsing
     private Claims parseClaims(String token){
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
+        return Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     // JET 토큰에서 사용자명 추출
     public String getUsernameFromToken(String token){
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return parseClaims(token).getSubject();
     }
 
 }

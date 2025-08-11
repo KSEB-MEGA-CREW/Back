@@ -1,6 +1,7 @@
 package org.example.mega_crew.global.exception;
 // 전역에 ExceptionHandler 정의 후 사용
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.global.common.ApiResponse;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,13 +55,6 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("입력 값 검증에 실패했습니다."));
     }
 
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<ApiResponse<String>> handleGlobalException(Exception e) {
-//        log.error("Unexpected error occurred: {}", e.getMessage(), e);
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//                .body(ApiResponse.error("서버 내부 오류가 발생했습니다."));
-//    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception e) {
         log.error("Unexpected error occurred: {}", e.getMessage(), e);
@@ -67,6 +62,20 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("서버 오류 발생 : "+e.getMessage()));
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleNotFound(NoResourceFoundException ex, HttpServletRequest request) throws NoResourceFoundException {
+        String requestUrl = request.getRequestURI();
 
+        // Swagger 경로 제외
+        if (requestUrl.contains("/swagger") ||
+                requestUrl.contains("/api-docs") ||
+                requestUrl.contains("/v3/api-docs") ||
+                requestUrl.contains("/webjars")) {
+            throw ex; // 기본 Spring 처리로 넘김
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("서버 오류 발생 : No static resource " + requestUrl + "."));
+    }
 
 }
