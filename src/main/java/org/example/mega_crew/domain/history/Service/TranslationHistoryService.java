@@ -8,6 +8,7 @@ import org.example.mega_crew.domain.history.dto.request.WebcamAnalysisHistoryReq
 import org.example.mega_crew.domain.history.entity.TranslationHistory;
 import org.example.mega_crew.domain.history.entity.WorkType;
 import org.example.mega_crew.domain.history.repository.TranslationHistoryRepository;
+import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import java.util.List;
 public class TranslationHistoryService {
 
    private final TranslationHistoryRepository translationHistoryRepository;
+   private final UserRepository userRepository;
 
    // 이미지 → 텍스트 작업 시작
    public TranslationHistory startImageToTextWork(WebcamAnalysisHistoryRequestDto requestDto) {
@@ -69,7 +71,7 @@ public class TranslationHistoryService {
 
    public Page<TranslationHistory> getUserHistories(Long userId, int page, int size) {
       Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-      return translationHistoryRepository.findByUserId(userId, (java.awt.print.Pageable) pageable);
+      return translationHistoryRepository.findByUserId(userId, pageable);
    }
 
    public List<TranslationHistory> getHistoriesByType(Long userId, WorkType workType) {
@@ -78,7 +80,7 @@ public class TranslationHistoryService {
 
    public Page<TranslationHistory> getHistoriesByType(Long userId, WorkType workType, int page, int size) {
       Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-      return translationHistoryRepository.findByUserIdAndWorkType(userId, workType, (java.awt.print.Pageable) pageable);
+      return translationHistoryRepository.findByUserIdAndWorkType(userId, workType, pageable);
    }
 
    public WorkTypeStatsDto getWorkTypeStats(Long userId, WorkType workType) {
