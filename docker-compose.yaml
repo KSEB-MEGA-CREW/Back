@@ -64,6 +64,13 @@ services:
       - FRAME_MIN_SIZE_KB=${FRAME_MIN_SIZE_KB:-1}
       - FRAME_MAX_TIMESTAMP_DIFF_MINUTES=${FRAME_MAX_TIMESTAMP_DIFF_MINUTES:-5}
 
+      # AWS S3 설정 추가
+      - AWS_ACCESS_KEY=${AWS_ACCESS_KEY}
+      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
+
     # 의존성 설정 (DB, Redis 먼저 시작)
     depends_on:
       db:
