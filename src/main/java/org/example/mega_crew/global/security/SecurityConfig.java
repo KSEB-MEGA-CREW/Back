@@ -57,12 +57,16 @@ public class SecurityConfig {
                         // OPTIONS 요청 허용 (CORS preflight)
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
 
-                        // API 문서 및 Swagger - 단순화
-                        .requestMatchers("/swagger-ui.html").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/swagger-resources/**").permitAll()
-                        .requestMatchers("/webjars/**").permitAll()
+                        // Swagger/OpenAPI 관련 모든 경로 허용
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs/swagger-config",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/api-docs/**"  // 기존 경로도 호환성을 위해 유지
+                        ).permitAll()
 
                         // 인증 관련 경로 - 단순화
                         .requestMatchers("/api/auth/**").permitAll()
