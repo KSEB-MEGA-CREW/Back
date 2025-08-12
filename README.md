@@ -7,9 +7,11 @@
 
 ## 🛠️ 사용 기술 스택
 
-- **백엔드**: Spring Boot, MySQL, Spring Security
+- **서버**: Spring Boot
+- **인증 및 인가**: Spring Security, JWT, OAuth 2.0, CORS
+- **DB**: JPA, MySQL, Redis
 - **3D 모델링**: Unity
-- **인프라**: AWS EC2, AWS S3
+- **인프라**: AWS EC2, AWS S3, Docker
 
 ---
 
@@ -19,7 +21,7 @@
 - 소셜 연동 로그인 (구글, 네이버, 카카오)
 - 수어 번역 서비스
 - 수어 학습 퀴즈 기능
-- QnA 게시판 (예정)
+- 관리자 계정
 
 ---
 
