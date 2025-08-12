@@ -18,5 +18,4 @@ public class WebcamAnalysisHistoryRequestDto {
    private String fileName;
 
    private String userAgent;
-   private String clientIp;
 }

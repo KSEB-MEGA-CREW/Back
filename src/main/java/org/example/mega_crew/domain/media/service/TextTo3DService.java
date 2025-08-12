@@ -20,15 +20,14 @@ public class TextTo3DService {
     private final TranslationHistoryService historyService;
 
 
-    // 히스토리 기록이 포함된 새로운 메서드
-    public TextTo3DResponse generate3D(TextTo3DRequest request, Long userId, String userAgent, String clientIp) {
+    // 히스토리 기록 포함 메서드
+    public TextTo3DResponse generate3D(TextTo3DRequest request, Long userId, String userAgent) {
 
-        // 1. 히스토리 기록 시작
-        TextTo3DHistoryRequestDto historyRequest = new TextTo3DHistoryRequestDto();
-        historyRequest.setUserId(userId);
-        historyRequest.setTextContent(request.getText());
-        historyRequest.setUserAgent(userAgent);
-        historyRequest.setClientIp(clientIp);
+        TextTo3DHistoryRequestDto historyRequest = TextTo3DHistoryRequestDto.builder()
+            .userId(userId)
+            .textContent(request.getText())
+            .userAgent(userAgent)
+            .build();
 
         TranslationHistory history = historyService.startTextTo3DWork(historyRequest);
         long startTime = System.currentTimeMillis();
@@ -36,72 +35,40 @@ public class TextTo3DService {
         try {
             log.info("AI server generate 3D request for user: {}", userId);
 
-            // 2. 기존 AI 서버 호출 로직
             TextTo3DResponse aiResponse = aiServerClient.generate3DFromText(request);
-
-            int processingTime = (int)(System.currentTimeMillis() - startTime);
+            int processingTime = (int) (System.currentTimeMillis() - startTime);
 
             if (aiResponse != null && aiResponse.getAiResult() != null) {
-                log.info("AI server generate 3D response success");
-
-                // 3. 성공 기록 업데이트
-                historyService.updateResult(
-                    history.getId(),
-                    aiResponse.getAiResult(),
-                    "SUCCESS",
-                    processingTime,
-                    null
-                );
-
+                historyService.updateResult(history.getId(), aiResponse.getAiResult(),
+                    "SUCCESS", processingTime, null);
                 return TextTo3DResponse.success(aiResponse.getAiResult());
             } else {
-                log.error("AI server generate 3D response failed - empty result");
-
-                // 4. 실패 기록 업데이트
-                historyService.updateResult(
-                    history.getId(),
-                    null,
-                    "ERROR",
-                    processingTime,
-                    "AI server returned empty result"
-                );
-
+                historyService.updateResult(history.getId(), null, "ERROR", processingTime,
+                    "AI server returned empty result");
                 return TextTo3DResponse.failure("AI server generate 3D response failed");
             }
 
         } catch (Exception e) {
-            int processingTime = (int)(System.currentTimeMillis() - startTime);
-            log.error("Text to 3D generation failed: {}", e.getMessage(), e);
+            int processingTime = (int) (System.currentTimeMillis() - startTime);
+            log.error("Text to 3D generation failed: {}", e.getMessage());
 
-            // 5. 예외 발생 시 에러 기록
-            historyService.updateResult(
-                history.getId(),
-                null,
-                "ERROR",
-                processingTime,
-                e.getMessage()
-            );
-
+            historyService.updateResult(history.getId(), null, "ERROR", processingTime, e.getMessage());
             return TextTo3DResponse.failure("AI server generate 3D response failed");
         }
     }
 
-
-    public TextTo3DResponse generate3D(TextTo3DRequest request){
-        try{
-            log.info("AI server generate 3D response");
+    // 기존 메서드 (하위 호환성 유지)
+    public TextTo3DResponse generate3D(TextTo3DRequest request) {
+        try {
             TextTo3DResponse aiResponse = aiServerClient.generate3DFromText(request);
 
-            if(aiResponse!= null){
-                log.info("AI server generate 3D response success");
+            if (aiResponse != null) {
                 return TextTo3DResponse.success(aiResponse.getAiResult());
-            }
-            else{
-                log.error("AI server generate 3D response failed");
+            } else {
                 return TextTo3DResponse.failure("AI server generate 3D response failed");
             }
-        } catch(Exception e){
-            log.error(e.getMessage());
+        } catch (Exception e) {
+            log.error("Text to 3D generation failed: {}", e.getMessage());
             return TextTo3DResponse.failure("AI server generate 3D response failed");
         }
     }

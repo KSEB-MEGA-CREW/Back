@@ -18,15 +18,14 @@ public class ImageAnalysisService {
     private final AiServerClient aiServerClient;
     private final TranslationHistoryService historyService;
 
-    // 히스토리 기록이 포함된 새로운 메서드
-    public WebcamAnalysisResponse analyzeImage(WebcamAnalysisRequest request, Long userId, String userAgent, String clientIp) {
+    // 히스토리 기록 포함 메서드
+    public WebcamAnalysisResponse analyzeImage(WebcamAnalysisRequest request, Long userId, String userAgent) {
 
-        // 1. 히스토리 기록 시작
-        WebcamAnalysisHistoryRequestDto historyRequest = new WebcamAnalysisHistoryRequestDto();
-        historyRequest.setUserId(userId);
-        historyRequest.setFileName(request.getImageFile().getOriginalFilename());
-        historyRequest.setUserAgent(userAgent);
-        historyRequest.setClientIp(clientIp);
+        WebcamAnalysisHistoryRequestDto historyRequest = WebcamAnalysisHistoryRequestDto.builder()
+            .userId(userId)
+            .fileName(request.getImageFile().getOriginalFilename())
+            .userAgent(userAgent)
+            .build();
 
         TranslationHistory history = historyService.startImageToTextWork(historyRequest);
         long startTime = System.currentTimeMillis();
@@ -34,75 +33,41 @@ public class ImageAnalysisService {
         try {
             log.info("AI server image analysis request: {}", request.getImageFile().getOriginalFilename());
 
-            // 2. 기존 AI 서버 호출 로직
             WebcamAnalysisResponse aiResponse = aiServerClient.analysisImage(request.getImageFile(), request);
-
-            int processingTime = (int)(System.currentTimeMillis() - startTime);
+            int processingTime = (int) (System.currentTimeMillis() - startTime);
 
             if (aiResponse != null && aiResponse.getAnalysisResult() != null) {
-                log.info("AI server image analysis response: {}", aiResponse.getAnalysisResult());
-
-                // 3. 성공 기록 업데이트
-                historyService.updateResult(
-                    history.getId(),
-                    aiResponse.getAnalysisResult(),
-                    "SUCCESS",
-                    processingTime,
-                    null
-                );
-
+                historyService.updateResult(history.getId(), aiResponse.getAnalysisResult(),
+                    "SUCCESS", processingTime, null);
                 return WebcamAnalysisResponse.success(aiResponse.getAnalysisResult());
             } else {
-                log.warn("AI server image analysis response failed - empty result");
-
-                // 4. 실패 기록 업데이트
-                historyService.updateResult(
-                    history.getId(),
-                    null,
-                    "ERROR",
-                    processingTime,
-                    "AI server returned empty result"
-                );
-
+                historyService.updateResult(history.getId(), null, "ERROR", processingTime,
+                    "AI server returned empty result");
                 return WebcamAnalysisResponse.error("AI server image analysis response failed");
             }
 
         } catch (Exception e) {
-            int processingTime = (int)(System.currentTimeMillis() - startTime);
-            log.error("Image analysis failed: {}", e.getMessage(), e);
+            int processingTime = (int) (System.currentTimeMillis() - startTime);
+            log.error("Image analysis failed: {}", e.getMessage());
 
-            // 5. 예외 발생 시 에러 기록
-            historyService.updateResult(
-                history.getId(),
-                null,
-                "ERROR",
-                processingTime,
-                e.getMessage()
-            );
-
+            historyService.updateResult(history.getId(), null, "ERROR", processingTime, e.getMessage());
             return WebcamAnalysisResponse.error("AI server image analysis failed");
         }
     }
 
-
+    // 기존 메서드 (하위 호환성 유지)
     public WebcamAnalysisResponse analyzeImage(WebcamAnalysisRequest request) {
-        try{
-            log.info("AI server generate 3D request: {}", request.getImageFile().getOriginalFilename());
-
+        try {
             WebcamAnalysisResponse aiResponse = aiServerClient.analysisImage(request.getImageFile(), request);
 
-            if(aiResponse!=null){
-                log.info("AI server generate 3D response: {}", aiResponse.getAnalysisResult());
+            if (aiResponse != null) {
                 return WebcamAnalysisResponse.success(aiResponse.getAnalysisResult());
+            } else {
+                return WebcamAnalysisResponse.error("AI server image analysis response failed");
             }
-            else{
-                log.info("AI server generate 3D response failed");
-                return WebcamAnalysisResponse.error("AI server generate 3D response failed");
-            }
-        } catch(Exception e){
-            log.error(e.getMessage());
-            return WebcamAnalysisResponse.error("AI server generate 3D response failed");
+        } catch (Exception e) {
+            log.error("Image analysis failed: {}", e.getMessage());
+            return WebcamAnalysisResponse.error("AI server image analysis failed");
         }
     }
-
 }

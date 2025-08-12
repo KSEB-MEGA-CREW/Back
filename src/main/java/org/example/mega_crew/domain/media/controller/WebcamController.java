@@ -29,10 +29,9 @@ public class WebcamController {
         @RequestParam("userId") Long userId,
         HttpServletRequest httpRequest) {
 
-        String clientIp = getClientIpAddress(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        WebcamAnalysisResponse response = imageAnalysisService.analyzeImage(request, userId, userAgent, clientIp);
+        WebcamAnalysisResponse response = imageAnalysisService.analyzeImage(request, userId, userAgent);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -44,13 +43,5 @@ public class WebcamController {
 
         WebcamAnalysisResponse response = imageAnalysisService.analyzeImage(request);
         return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    private String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0];
-        }
-        return request.getRemoteAddr();
     }
 }
