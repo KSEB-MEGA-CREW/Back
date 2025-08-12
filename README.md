@@ -8,8 +8,11 @@
 ## 🛠️ 사용 기술 스택
 
 - **서버**: Spring Boot
-- **인증 및 인가**: Spring Security, JWT, OAuth 2.0, CORS
-- **DB**: JPA, MySQL, Redis
+- **빌드**: Gradle
+- **명세서**: Swagger
+- **인증 및 인가**: Spring Security(세션 기반), JWT, OAuth 2.0, CORS
+- **DB**: MySQL, Redis
+- **ORM**: Spring Data JPA, Hibernate  
 - **3D 모델링**: Unity
 - **인프라**: AWS EC2, AWS S3, Docker
 
