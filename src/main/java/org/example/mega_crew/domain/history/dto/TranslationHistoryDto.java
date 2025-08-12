@@ -20,8 +20,9 @@ public class TranslationHistoryDto {
    private Integer processingTime;
    private String errorMessage;
    private String userAgent;
-   private String clientIp;
    private Integer inputLength;
-   private LocalDateTime createdAt;
-   private LocalDateTime updatedAt;
+   private LocalDateTime createdDate;
+   private LocalDateTime modifiedDate;
+   private LocalDateTime expiresAt;
+   private Boolean isExpired;
 }

@@ -5,6 +5,8 @@ import lombok.*;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "translation_histories")
 @Setter
@@ -30,7 +32,6 @@ public class TranslationHistory extends BaseEntity {
    @Column(name="input_content")
    private String inputContent;
 
-   // 히스토리 업데이트를 위한 편의 메서드들
    @Column(name="output_content")
    private String outputContent;
 
@@ -46,10 +47,31 @@ public class TranslationHistory extends BaseEntity {
    @Column(name = "user_agent")
    private String userAgent;
 
-   @Column(name = "client_ip")
-   private String clientIp;
-
    @Column(name = "input_length")
    private Integer inputLength;
 
+   @Column(name = "expires_at")
+   private LocalDateTime expiresAt;
+
+   @Column(name = "is_expired", nullable = false)
+   @Builder.Default
+   private Boolean isExpired = false;
+
+   // 만료 기간 설정
+   @PrePersist
+   public void setExpirationDate() {
+      if (this.expiresAt == null) {
+         this.expiresAt = LocalDateTime.now().plusDays(30); // 30일
+      }
+   }
+
+   // 만료 여부 확인
+   public boolean checkExpired() {
+      return this.isExpired || (this.expiresAt != null && LocalDateTime.now().isAfter(this.expiresAt));
+   }
+
+   // 수동 만료 처리
+   public void markAsExpired() {
+      this.isExpired = true;
+   }
 }

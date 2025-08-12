@@ -19,5 +19,4 @@ public class TextTo3DHistoryRequestDto {
    private String textContent;
 
    private String userAgent;
-   private String clientIp;
 }

@@ -27,10 +27,9 @@ public class TextTo3DController {
         @RequestParam("userId") Long userId,
         HttpServletRequest httpRequest) {
 
-        String clientIp = getClientIpAddress(httpRequest);
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        TextTo3DResponse response = textTo3DService.generate3D(request, userId, userAgent, clientIp);
+        TextTo3DResponse response = textTo3DService.generate3D(request, userId, userAgent);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -42,13 +41,5 @@ public class TextTo3DController {
 
         TextTo3DResponse response = textTo3DService.generate3D(request);
         return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    private String getClientIpAddress(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            return xForwardedFor.split(",")[0];
-        }
-        return request.getRemoteAddr();
     }
 }

@@ -22,22 +22,12 @@ public class TranslationHistoryController {
 
    private final TranslationHistoryService translationHistoryService;
 
-   // IP 주소 추출 유틸리티 메서드
-   private String getClientIpAddress(HttpServletRequest request) {
-      String xForwardedFor = request.getHeader("X-Forwarded-For");
-      if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-         return xForwardedFor.split(",")[0];
-      }
-      return request.getRemoteAddr();
-   }
-
    // 이미지 → 텍스트 작업 시작
    @PostMapping("/image-to-text")
    public ResponseEntity<TranslationHistory> startImageToText(
        @Valid @RequestBody WebcamAnalysisHistoryRequestDto requestDto,
        HttpServletRequest request) {
 
-      requestDto.setClientIp(getClientIpAddress(request));
       requestDto.setUserAgent(request.getHeader("User-Agent"));
 
       TranslationHistory history = translationHistoryService.startImageToTextWork(requestDto);
@@ -50,7 +40,6 @@ public class TranslationHistoryController {
        @Valid @RequestBody TextTo3DHistoryRequestDto requestDto,
        HttpServletRequest request) {
 
-      requestDto.setClientIp(getClientIpAddress(request));
       requestDto.setUserAgent(request.getHeader("User-Agent"));
 
       TranslationHistory history = translationHistoryService.startTextTo3DWork(requestDto);
@@ -101,5 +90,19 @@ public class TranslationHistoryController {
 
       WorkTypeStatsDto stats = translationHistoryService.getWorkTypeStats(userId, workType);
       return ResponseEntity.ok(stats);
+   }
+
+   // 관리자용 수동 정리 API
+   @PostMapping("/admin/cleanup")
+   public ResponseEntity<Map<String, Integer>> manualCleanup() {
+      int marked = translationHistoryService.markExpiredRecords();
+      int deleted = translationHistoryService.deleteOldExpiredRecords(7);
+
+      Map<String, Integer> result = Map.of(
+          "markedAsExpired", marked,
+          "deleted", deleted
+      );
+
+      return ResponseEntity.ok(result);
    }
 }
