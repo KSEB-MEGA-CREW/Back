@@ -14,6 +14,7 @@ public class UserResponse {
     private String username;
     private AuthProvider authProvider;
     private UserRole role;
+    private String hearing;
 
     public static UserResponse from(User user){
         return UserResponse.builder()
@@ -21,6 +22,7 @@ public class UserResponse {
                 .email(user.getEmail())
                 .username(user.getUsername())
                 .role(user.getRole())
+                .hearing(String.valueOf(user.getHearingStatus()))
                 .authProvider(user.getAuthProvider())
                 .build();
     }

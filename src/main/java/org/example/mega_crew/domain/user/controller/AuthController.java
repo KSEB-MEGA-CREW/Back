@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
+import org.example.mega_crew.domain.user.dto.request.UserUpdateRequest;
 import org.example.mega_crew.domain.user.dto.response.UserResponse;
 import org.example.mega_crew.domain.user.entity.AuthProvider;
 import org.example.mega_crew.domain.user.entity.User;
@@ -74,6 +75,7 @@ public class AuthController {
                 .id(userId)
                 .email(email)
                 .username(user.getUsername())
+                .hearing(String.valueOf(user.getHearingStatus()))
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfo));
@@ -107,4 +109,37 @@ public class AuthController {
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error("소셜 로그인에 실패했습니다."));
     }
+
+   @PutMapping("/update-profile")
+   public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
+       @Valid @RequestBody UserUpdateRequest request,
+       HttpServletRequest httpRequest) {
+
+      String token = jwtUtil.extractTokenFromRequest(httpRequest);
+      Long userId = jwtUtil.extractUserId(token);
+
+      UserResponse updatedUser = userService.updateUserProfile(userId, request);
+
+      return ResponseEntity.ok(ApiResponse.success(updatedUser));
+   }
+
+   @DeleteMapping("/delete-account")
+   public ResponseEntity<ApiResponse<String>> deleteAccount(HttpServletRequest request) {
+      try {
+         String token = jwtUtil.extractTokenFromRequest(request);
+         Long userId = jwtUtil.extractUserId(token);
+
+         userService.deleteUserAccount(userId);
+
+         return ResponseEntity.ok(ApiResponse.success("계정이 성공적으로 삭제되었습니다."));
+
+      } catch (UsernameNotFoundException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error("존재하지 않는 사용자입니다."));
+      } catch (Exception e) {
+         log.error("계정 삭제 중 오류 발생: ", e);
+         return ResponseEntity.internalServerError()
+             .body(ApiResponse.error("계정 삭제 중 오류가 발생했습니다."));
+      }
+   }
 }

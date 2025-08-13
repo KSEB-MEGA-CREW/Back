@@ -65,7 +65,18 @@ public class User extends BaseEntity implements UserDetails {
     return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
   }
 
-  @Override
+  // 프로필 업데이트
+   public void updateProfile(String username, HearingStatus hearingStatus) {
+      if (username != null && !username.trim().isEmpty()) {
+         this.username = username;
+      }
+      if (hearingStatus != null) {
+         this.hearingStatus = hearingStatus;
+      }
+   }
+
+
+   @Override
   public String getPassword(){
     return password;
   }
