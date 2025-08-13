@@ -8,8 +8,11 @@ import org.example.mega_crew.domain.question.entity.SupportTicket;
 import org.example.mega_crew.domain.question.entity.TicketCategory;
 import org.example.mega_crew.domain.question.entity.TicketStatus;
 import org.example.mega_crew.domain.question.repository.SupportTicketRepository;
+import org.example.mega_crew.domain.user.entity.User;
+import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,9 +23,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class SupportService {
 
    private final SupportTicketRepository supportTicketRepository;
+   private final UserRepository userRepository;
 
    // 문의 제출
    public SupportTicketResponseDto createTicket(Long userId, SupportTicketRequestDto request) {
+      User user = userRepository.findById(userId)
+          .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
+
       // 카테고리 변환
       TicketCategory category;
       try {
@@ -32,7 +39,7 @@ public class SupportService {
       }
 
       SupportTicket ticket = SupportTicket.builder()
-          .userId(userId)
+          .user(user)
           .userName(request.getUserName())
           .category(category)
           .subject(request.getSubject())

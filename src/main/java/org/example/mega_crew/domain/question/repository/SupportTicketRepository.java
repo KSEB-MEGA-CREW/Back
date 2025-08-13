@@ -16,7 +16,7 @@ import java.util.List;
 public interface SupportTicketRepository extends JpaRepository<SupportTicket, Long> {
 
    // 사용자별 문의 조회
-   @Query("SELECT s FROM SupportTicket s WHERE s.userId = :userId ORDER BY s.createdDate DESC")
+   @Query("SELECT s FROM SupportTicket s WHERE s.user.id = :userId ORDER BY s.createdDate DESC")
    Page<SupportTicket> findTicketsByUserId(@Param("userId") Long userId, Pageable pageable);
 
    // 공개 문의 조회
