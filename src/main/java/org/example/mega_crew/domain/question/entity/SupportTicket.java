@@ -2,6 +2,7 @@ package org.example.mega_crew.domain.question.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
 
 @Entity
@@ -16,8 +17,9 @@ public class SupportTicket extends BaseEntity {
    @GeneratedValue(strategy = GenerationType.IDENTITY)
    private Long id;
 
-   @Column(nullable = false)
-   private Long userId;
+   @ManyToOne(fetch = FetchType.LAZY)
+   @JoinColumn(name = "user_id", referencedColumnName = "id")
+   private User user;
 
    @Column(nullable = false)
    private String userName;
