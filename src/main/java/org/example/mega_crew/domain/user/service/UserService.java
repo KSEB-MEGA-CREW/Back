@@ -189,4 +189,20 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
 
       return UserResponse.from(updatedUser);
    }
+
+   @Transactional
+   public void deleteUserAccount(Long userId) {
+      User user = userRepository.findById(userId)
+          .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
+
+      log.info("사용자 계정 삭제 시작 - User ID: {}, Email: {}", userId, user.getEmail());
+
+      userRepository.delete(user);
+
+      log.info("사용자 계정 삭제 완료 - User ID: {}", userId);
+   }
+
+   // 관련 데이터 정리 메서드 (필요한 경우 구현)
+   private void deleteUserRelatedData(Long userId) {
+   }
 }

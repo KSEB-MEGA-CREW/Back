@@ -122,4 +122,24 @@ public class AuthController {
 
       return ResponseEntity.ok(ApiResponse.success(updatedUser));
    }
+
+   @DeleteMapping("/delete-account")
+   public ResponseEntity<ApiResponse<String>> deleteAccount(HttpServletRequest request) {
+      try {
+         String token = jwtUtil.extractTokenFromRequest(request);
+         Long userId = jwtUtil.extractUserId(token);
+
+         userService.deleteUserAccount(userId);
+
+         return ResponseEntity.ok(ApiResponse.success("계정이 성공적으로 삭제되었습니다."));
+
+      } catch (UsernameNotFoundException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error("존재하지 않는 사용자입니다."));
+      } catch (Exception e) {
+         log.error("계정 삭제 중 오류 발생: ", e);
+         return ResponseEntity.internalServerError()
+             .body(ApiResponse.error("계정 삭제 중 오류가 발생했습니다."));
+      }
+   }
 }
