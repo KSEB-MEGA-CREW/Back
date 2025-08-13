@@ -30,7 +30,6 @@ public class SupportService {
       User user = userRepository.findById(userId)
           .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
 
-      // 카테고리 변환
       TicketCategory category;
       try {
          category = TicketCategory.valueOf(request.getCategory().toUpperCase());
