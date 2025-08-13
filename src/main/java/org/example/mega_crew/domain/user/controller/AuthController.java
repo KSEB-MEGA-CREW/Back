@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
+import org.example.mega_crew.domain.user.dto.request.UserUpdateRequest;
 import org.example.mega_crew.domain.user.dto.response.UserResponse;
 import org.example.mega_crew.domain.user.entity.AuthProvider;
 import org.example.mega_crew.domain.user.entity.User;
@@ -74,6 +75,7 @@ public class AuthController {
                 .id(userId)
                 .email(email)
                 .username(user.getUsername())
+                .hearing(String.valueOf(user.getHearingStatus()))
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfo));
@@ -107,4 +109,17 @@ public class AuthController {
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error("소셜 로그인에 실패했습니다."));
     }
+
+   @PutMapping("/update-profile")
+   public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
+       @Valid @RequestBody UserUpdateRequest request,
+       HttpServletRequest httpRequest) {
+
+      String token = jwtUtil.extractTokenFromRequest(httpRequest);
+      Long userId = jwtUtil.extractUserId(token);
+
+      UserResponse updatedUser = userService.updateUserProfile(userId, request);
+
+      return ResponseEntity.ok(ApiResponse.success(updatedUser));
+   }
 }

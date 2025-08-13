@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
+import org.example.mega_crew.domain.user.dto.request.UserUpdateRequest;
 import org.example.mega_crew.domain.user.dto.response.UserResponse;
 import org.example.mega_crew.domain.user.entity.HearingStatus;
 import org.example.mega_crew.domain.user.entity.User;
@@ -165,5 +166,27 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
       return username;
    }
 
+   // 프로필 편집 기능
+   public UserResponse updateUserProfile(Long userId, UserUpdateRequest request) {
+      User user = userRepository.findById(userId)
+          .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
 
+      // username 중복 검사 (현재 사용자 제외)
+      if (!user.getUsername().equals(request.getUsername()) &&
+          userRepository.existsByUsername(request.getUsername())) {
+         throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+      }
+
+      // HearingStatus 변환
+      HearingStatus hearingStatus = HearingStatus.NORMAL;
+      if ("deaf".equalsIgnoreCase(request.getHearing())) {
+         hearingStatus = HearingStatus.DEAF;
+      }
+
+      // 사용자 정보 업데이트
+      user.updateProfile(request.getUsername(), hearingStatus);
+      User updatedUser = userRepository.save(user);
+
+      return UserResponse.from(updatedUser);
+   }
 }
