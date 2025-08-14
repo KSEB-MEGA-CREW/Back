@@ -20,6 +20,22 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, Lo
    @Query("SELECT s FROM SupportTicket s WHERE s.user.id = :userId ORDER BY s.createdDate DESC")
    Page<SupportTicket> findTicketsByUserId(@Param("userId") Long userId, Pageable pageable);
 
+   // 게시판용 - 모든 문의 조회 (공개 + 비공개) - Service에서 호출하는 메서드명
+   @Query("SELECT s FROM SupportTicket s ORDER BY s.createdDate DESC")
+   Page<SupportTicket> findAllTicketsForBoard(Pageable pageable);
+
+   // 게시판용 - 카테고리별 모든 문의 조회 (공개 + 비공개) - Service에서 호출하는 메서드명
+   @Query("SELECT s FROM SupportTicket s WHERE s.category = :category ORDER BY s.createdDate DESC")
+   Page<SupportTicket> findAllTicketsByCategoryForBoard(@Param("category") TicketCategory category, Pageable pageable);
+
+   // 모든 문의 조회 (공개 + 비공개) - 기존 메서드
+   @Query("SELECT s FROM SupportTicket s ORDER BY s.createdDate DESC")
+   Page<SupportTicket> findAllTicketsForPublicBoard(Pageable pageable);
+
+   // 카테고리별 모든 문의 조회 (공개 + 비공개) - 기존 메서드
+   @Query("SELECT s FROM SupportTicket s WHERE s.category = :category ORDER BY s.createdDate DESC")
+   Page<SupportTicket> findAllTicketsByCategory(@Param("category") TicketCategory category, Pageable pageable);
+
    // 공개 문의 조회
    @Query("SELECT s FROM SupportTicket s WHERE s.isPublic = true ORDER BY s.createdDate DESC")
    Page<SupportTicket> findPublicTickets(Pageable pageable);

@@ -76,6 +76,27 @@ public class SupportService {
       return tickets.map(SupportTicketResponseDto::from);
    }
 
+   // 게시판용 - 모든 문의 조회 (공개 + 비공개)
+   @Transactional(readOnly = true)
+   public Page<SupportTicketResponseDto> getAllTicketsForBoard(Pageable pageable, Long currentUserId) {
+      Page<SupportTicket> tickets = supportTicketRepository.findAllTicketsForBoard(pageable);
+      return tickets.map(SupportTicketResponseDto::from);
+   }
+
+   // 게시판용 - 카테고리별 모든 문의 조회 (공개 + 비공개)
+   @Transactional(readOnly = true)
+   public Page<SupportTicketResponseDto> getAllTicketsByCategory(String categoryStr, Pageable pageable, Long currentUserId) {
+      TicketCategory category;
+      try {
+         category = TicketCategory.valueOf(categoryStr.toUpperCase());
+      } catch (IllegalArgumentException e) {
+         throw new IllegalArgumentException("유효하지 않은 카테고리입니다: " + categoryStr);
+      }
+
+      Page<SupportTicket> tickets = supportTicketRepository.findAllTicketsByCategoryForBoard(category, pageable);
+      return tickets.map(SupportTicketResponseDto::from);
+   }
+
    // 공개 문의 조회
    @Transactional(readOnly = true)
    public Page<SupportTicketResponseDto> getPublicTickets(Pageable pageable) {
