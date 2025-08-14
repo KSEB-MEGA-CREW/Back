@@ -45,34 +45,51 @@ public class SupportController {
    // 내 문의 목록 조회
    @GetMapping("/my-tickets")
    public ResponseEntity<ApiResponse<Page<SupportTicketResponseDto>>> getMyTickets(
-       @RequestParam(defaultValue = "0") int page,
-       @RequestParam(defaultValue = "10") int size,
+       @RequestParam(defaultValue = "1") int page,
+       @RequestParam(defaultValue = "5") int size,
        HttpServletRequest httpRequest) {
 
       String token = jwtUtil.extractTokenFromRequest(httpRequest);
       Long userId = jwtUtil.extractUserId(token);
 
-      Pageable pageable = PageRequest.of(page, size);
+      Pageable pageable = PageRequest.of(page - 1, size);
       Page<SupportTicketResponseDto> tickets = supportService.getMyTickets(userId, pageable);
 
       return ResponseEntity.ok(ApiResponse.success(tickets));
    }
 
-   // 공개 문의 게시판 조회
+   // 게시판 조회(모든 문의 반환 - 공개+비공개)
    @GetMapping("/public")
    public ResponseEntity<ApiResponse<Page<SupportTicketResponseDto>>> getPublicTickets(
-       @RequestParam(defaultValue = "0") int page,
-       @RequestParam(defaultValue = "10") int size,
-       @RequestParam(required = false) String category) {
+       @RequestParam(defaultValue = "1") int page,
+       @RequestParam(defaultValue = "5") int size,
+       @RequestParam(required = false) String category,
+       HttpServletRequest httpRequest) {
 
-      Pageable pageable = PageRequest.of(page, size);
+      log.info(" 게시판 조회 요청 - page: {}, size: {}", page, size);
+
+      // 현재 사용자 ID 추출 (로그인한 경우)
+      Long currentUserId = null;
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         if (token != null) {
+            currentUserId = jwtUtil.extractUserId(token);
+         }
+      } catch (Exception e) {
+         log.debug("토큰 추출 실패 (로그인하지 않은 사용자): {}", e.getMessage());
+      }
+
+      Pageable pageable = PageRequest.of(page - 1, size);
       Page<SupportTicketResponseDto> tickets;
 
       if (category != null && !category.trim().isEmpty()) {
-         tickets = supportService.getPublicTicketsByCategory(category, pageable);
+         tickets = supportService.getAllTicketsByCategory(category, pageable, currentUserId);
       } else {
-         tickets = supportService.getPublicTickets(pageable);
+         tickets = supportService.getAllTicketsForBoard(pageable, currentUserId);
       }
+
+      log.info(" 조회 결과 - 총 {}개, 현재 페이지 {}개",
+          tickets.getTotalElements(), tickets.getContent().size());
 
       return ResponseEntity.ok(ApiResponse.success(tickets));
    }
@@ -102,7 +119,7 @@ public class SupportController {
    // 모든 문의 조회 (관리자)
    @GetMapping("/admin/tickets")
    public ResponseEntity<ApiResponse<Page<SupportTicketResponseDto>>> getAllTicketsForAdmin(
-       @RequestParam(defaultValue = "0") int page,
+       @RequestParam(defaultValue = "1") int page,
        @RequestParam(defaultValue = "20") int size,
        HttpServletRequest httpRequest) {
 
@@ -110,7 +127,7 @@ public class SupportController {
          String token = jwtUtil.extractTokenFromRequest(httpRequest);
          Long adminId = jwtUtil.extractUserId(token);
 
-         Pageable pageable = PageRequest.of(page, size);
+         Pageable pageable = PageRequest.of(page - 1, size);
          Page<SupportTicketResponseDto> tickets = supportService.getAllTickets(adminId, pageable);
 
          return ResponseEntity.ok(ApiResponse.success(tickets));
@@ -123,7 +140,7 @@ public class SupportController {
    // 답변 대기 문의 조회 (관리자)
    @GetMapping("/admin/pending")
    public ResponseEntity<ApiResponse<Page<SupportTicketResponseDto>>> getPendingTickets(
-       @RequestParam(defaultValue = "0") int page,
+       @RequestParam(defaultValue = "1") int page,
        @RequestParam(defaultValue = "20") int size,
        HttpServletRequest httpRequest) {
 
@@ -131,7 +148,7 @@ public class SupportController {
          String token = jwtUtil.extractTokenFromRequest(httpRequest);
          Long adminId = jwtUtil.extractUserId(token);
 
-         Pageable pageable = PageRequest.of(page, size);
+         Pageable pageable = PageRequest.of(page - 1, size);
          Page<SupportTicketResponseDto> tickets = supportService.getPendingTickets(adminId, pageable);
 
          return ResponseEntity.ok(ApiResponse.success(tickets));
