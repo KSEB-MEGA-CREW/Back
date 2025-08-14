@@ -18,7 +18,7 @@ public class SupportTicketRequestDto {
    private String category;
 
    @NotBlank(message = "제목은 필수입니다.")
-   @Size(min = 5, max = 200, message = "제목은 5자 이상 200자 이하여야 합니다.")
+   @Size(min = 2, max = 200, message = "제목은 5자 이상 200자 이하여야 합니다.")
    private String subject;
 
    @NotBlank(message = "내용은 필수입니다.")
