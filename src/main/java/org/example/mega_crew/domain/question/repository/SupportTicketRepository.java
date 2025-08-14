@@ -1,6 +1,6 @@
 package org.example.mega_crew.domain.question.repository;
 
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
 import org.example.mega_crew.domain.question.entity.SupportTicket;
 import org.example.mega_crew.domain.question.entity.TicketCategory;
 import org.example.mega_crew.domain.question.entity.TicketStatus;
