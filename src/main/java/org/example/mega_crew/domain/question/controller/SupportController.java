@@ -4,8 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.mega_crew.domain.question.dto.request.AdminReplyRequestDto;
 import org.example.mega_crew.domain.question.dto.request.SupportTicketRequestDto;
 import org.example.mega_crew.domain.question.dto.response.SupportTicketResponseDto;
+import org.example.mega_crew.domain.question.entity.TicketStatus;
 import org.example.mega_crew.domain.question.service.SupportService;
 import org.example.mega_crew.global.common.ApiResponse;
 import org.example.mega_crew.global.security.JwtUtil;
@@ -14,6 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.nio.file.AccessDeniedException;
 
 @Slf4j
 @RestController
@@ -71,5 +75,115 @@ public class SupportController {
       }
 
       return ResponseEntity.ok(ApiResponse.success(tickets));
+   }
+
+   @PostMapping("/tickets/{ticketId}/reply")
+   public ResponseEntity<ApiResponse<SupportTicketResponseDto>> addReply(
+       @PathVariable Long ticketId,
+       @Valid @RequestBody AdminReplyRequestDto request,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long adminId = jwtUtil.extractUserId(token);
+
+         SupportTicketResponseDto response = supportService.addReply(adminId, ticketId, request);
+
+         return ResponseEntity.ok(ApiResponse.success(response));
+      } catch (AccessDeniedException e) {
+         return ResponseEntity.status(403)
+             .body(ApiResponse.error("관리자 권한이 필요합니다."));
+      } catch (IllegalArgumentException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error(e.getMessage()));
+      }
+   }
+
+   // 모든 문의 조회 (관리자)
+   @GetMapping("/admin/tickets")
+   public ResponseEntity<ApiResponse<Page<SupportTicketResponseDto>>> getAllTicketsForAdmin(
+       @RequestParam(defaultValue = "0") int page,
+       @RequestParam(defaultValue = "20") int size,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long adminId = jwtUtil.extractUserId(token);
+
+         Pageable pageable = PageRequest.of(page, size);
+         Page<SupportTicketResponseDto> tickets = supportService.getAllTickets(adminId, pageable);
+
+         return ResponseEntity.ok(ApiResponse.success(tickets));
+      } catch (AccessDeniedException e) {
+         return ResponseEntity.status(403)
+             .body(ApiResponse.error("관리자 권한이 필요합니다."));
+      }
+   }
+
+   // 답변 대기 문의 조회 (관리자)
+   @GetMapping("/admin/pending")
+   public ResponseEntity<ApiResponse<Page<SupportTicketResponseDto>>> getPendingTickets(
+       @RequestParam(defaultValue = "0") int page,
+       @RequestParam(defaultValue = "20") int size,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long adminId = jwtUtil.extractUserId(token);
+
+         Pageable pageable = PageRequest.of(page, size);
+         Page<SupportTicketResponseDto> tickets = supportService.getPendingTickets(adminId, pageable);
+
+         return ResponseEntity.ok(ApiResponse.success(tickets));
+      } catch (AccessDeniedException e) {
+         return ResponseEntity.status(403)
+             .body(ApiResponse.error("관리자 권한이 필요합니다."));
+      }
+   }
+
+   // 문의 상세 조회 (관리자)
+   @GetMapping("/admin/tickets/{ticketId}")
+   public ResponseEntity<ApiResponse<SupportTicketResponseDto>> getTicketDetailForAdmin(
+       @PathVariable Long ticketId,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long adminId = jwtUtil.extractUserId(token);
+
+         SupportTicketResponseDto ticket = supportService.getTicketDetail(adminId, ticketId);
+
+         return ResponseEntity.ok(ApiResponse.success(ticket));
+      } catch (AccessDeniedException e) {
+         return ResponseEntity.status(403)
+             .body(ApiResponse.error("관리자 권한이 필요합니다."));
+      } catch (IllegalArgumentException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error(e.getMessage()));
+      }
+   }
+
+   // 문의 상태 변경 (관리자)
+   @PatchMapping("/admin/tickets/{ticketId}/status")
+   public ResponseEntity<ApiResponse<SupportTicketResponseDto>> updateTicketStatus(
+       @PathVariable Long ticketId,
+       @RequestParam String status,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long adminId = jwtUtil.extractUserId(token);
+
+         TicketStatus ticketStatus = TicketStatus.valueOf(status.toUpperCase());
+         SupportTicketResponseDto response = supportService.updateTicketStatus(adminId, ticketId, ticketStatus);
+
+         return ResponseEntity.ok(ApiResponse.success(response));
+      } catch (AccessDeniedException e) {
+         return ResponseEntity.status(403)
+             .body(ApiResponse.error("관리자 권한이 필요합니다."));
+      } catch (IllegalArgumentException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error("유효하지 않은 상태입니다: " + status));
+      }
    }
 }

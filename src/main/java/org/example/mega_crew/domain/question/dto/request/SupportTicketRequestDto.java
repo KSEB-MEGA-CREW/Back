@@ -22,7 +22,7 @@ public class SupportTicketRequestDto {
    private String subject;
 
    @NotBlank(message = "내용은 필수입니다.")
-   @Size(min = 10, message = "내용은 10자 이상이어야 합니다.")
+   @Size(min = 2, message = "내용은 2자 이상이어야 합니다.")
    private String content;
 
    @NotNull(message = "공개 여부는 필수입니다.")

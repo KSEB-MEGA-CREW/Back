@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SupportTicketRepository extends JpaRepository<SupportTicket, Long> {
@@ -30,4 +31,15 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, Lo
    // 상태별 조회
    @Query("SELECT s FROM SupportTicket s WHERE s.status = :status ORDER BY s.createdDate DESC")
    Page<SupportTicket> findTicketsByStatus(@Param("status") TicketStatus status, Pageable pageable);
+
+   // 관리자용 쿼리들 추가
+   @Query("SELECT s FROM SupportTicket s ORDER BY s.createdDate DESC")
+   Page<SupportTicket> findAllTicketsForAdmin(Pageable pageable);
+
+   @Query("SELECT s FROM SupportTicket s WHERE s.status IN ('PENDING', 'IN_PROGRESS') ORDER BY s.createdDate ASC")
+   Page<SupportTicket> findPendingTickets(Pageable pageable);
+
+   // 특정 티켓 조회 (관리자용)
+   @Query("SELECT s FROM SupportTicket s WHERE s.id = :ticketId")
+   Optional<SupportTicket> findTicketById(@Param("ticketId") Long ticketId);
 }

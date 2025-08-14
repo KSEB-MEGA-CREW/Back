@@ -3,6 +3,7 @@ package org.example.mega_crew.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.mega_crew.domain.user.dto.request.AdminSignupRequest;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
 import org.example.mega_crew.domain.user.dto.request.UserUpdateRequest;
@@ -62,6 +63,41 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
       return UserResponse.from(savedUser);
    }
 
+   // 관리자 계정 생성 (최초 설정용 또는 기존 관리자가 생성)
+   public UserResponse createAdmin(AdminSignupRequest request, Long currentUserId) {
+      // 기존 관리자가 새 관리자를 생성하는 경우 권한 검증
+      if (currentUserId != null) {
+         User currentUser = userRepository.findById(currentUserId)
+             .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
+
+         if (currentUser.getRole() != UserRole.ADMIN) {
+            throw new IllegalArgumentException("관리자만 새로운 관리자 계정을 생성할 수 있습니다.");
+         }
+      }
+
+      if (userRepository.existsByEmail(request.getEmail())) {
+         throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+      }
+
+      if (userRepository.existsByUsername(request.getUsername())) {
+         throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+      }
+
+      User admin = User.builder()
+          .email(request.getEmail())
+          .password(passwordEncoder.encode(request.getPassword()))
+          .username(request.getUsername())
+          .hearingStatus(HearingStatus.NORMAL) // 관리자는 기본적으로 NORMAL
+          .role(UserRole.ADMIN) // 관리자 권한
+          .authProvider(AuthProvider.LOCAL)
+          .build();
+
+      User savedAdmin = userRepository.save(admin);
+      log.info("관리자 계정 생성 완료 - Email: {}, Username: {}", savedAdmin.getEmail(), savedAdmin.getUsername());
+      return UserResponse.from(savedAdmin);
+   }
+
+   // 로그인 (일반, 관리자)
    public String login(LoginRequest request) {
       User user = userRepository.findByEmail(request.getEmail())
           .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 이메일입니다."));
@@ -70,7 +106,16 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
          throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
       }
 
-      return jwtUtil.createToken(user.getEmail(), user.getId());
+      String token = jwtUtil.createToken(user.getEmail(), user.getId());
+
+      // 로그인 로그 (역할 구분)
+      if (user.getRole() == UserRole.ADMIN) {
+         log.info("관리자 로그인 - Email: {}, Username: {}", user.getEmail(), user.getUsername());
+      } else {
+         log.info("일반 사용자 로그인 - Email: {}, Username: {}", user.getEmail(), user.getUsername());
+      }
+
+      return token;
    }
 
    @Transactional(readOnly = true)
@@ -166,7 +211,7 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
       return username;
    }
 
-   // 프로필 편집 기능
+   // 프로필 편집
    public UserResponse updateUserProfile(Long userId, UserUpdateRequest request) {
       User user = userRepository.findById(userId)
           .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));

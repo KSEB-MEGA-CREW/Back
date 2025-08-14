@@ -6,6 +6,8 @@ import org.example.mega_crew.domain.user.entity.AuthProvider; // Security와 충
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.domain.user.entity.UserRole;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 public class UserResponse {
@@ -15,8 +17,9 @@ public class UserResponse {
     private AuthProvider authProvider;
     private UserRole role;
     private String hearing;
+    private LocalDateTime createdDate;
 
-    public static UserResponse from(User user){
+   public static UserResponse from(User user){
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -24,6 +27,7 @@ public class UserResponse {
                 .role(user.getRole())
                 .hearing(String.valueOf(user.getHearingStatus()))
                 .authProvider(user.getAuthProvider())
+                .createdDate(user.getCreatedDate())
                 .build();
     }
 }
