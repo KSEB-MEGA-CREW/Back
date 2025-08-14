@@ -3,7 +3,9 @@ package org.example.mega_crew.domain.user.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.example.mega_crew.domain.user.dto.request.AdminSignupRequest;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
 import org.example.mega_crew.domain.user.dto.request.UserUpdateRequest;
@@ -34,12 +36,58 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+   @Value("${application.admin.signup.code}")
+   private String adminSignupCode;
+
     @PostMapping("/signup")
     public ResponseEntity<ApiResponse<UserResponse>> signup(@Valid @RequestBody UserSignupRequest request){
         UserResponse userResponse = userService.signup(request);
         return ResponseEntity.ok(ApiResponse.success(userResponse));
     }
 
+    // 관리자 회원가입 - 인증 코드 필요
+   @PostMapping("/admin/signup")
+   public ResponseEntity<ApiResponse<UserResponse>> adminSignup(@Valid @RequestBody AdminSignupRequest request) {
+      try {
+         // 관리자 인증 코드 검증
+         if (!adminSignupCode.equals(request.getAdminCode())) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("유효하지 않은 관리자 인증 코드입니다."));
+         }
+
+         UserResponse adminResponse = userService.createAdmin(request, null);
+         return ResponseEntity.ok(ApiResponse.success(adminResponse));
+      } catch (IllegalArgumentException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error(e.getMessage()));
+      }
+   }
+
+   // 기존 관리자가 새 관리자 생성
+   @PostMapping("/admin/create-admin")
+   public ResponseEntity<ApiResponse<UserResponse>> createAdminByAdmin(
+       @Valid @RequestBody AdminSignupRequest request,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long currentUserId = jwtUtil.extractUserId(token);
+
+         // 관리자 인증 코드 검증
+         if (!adminSignupCode.equals(request.getAdminCode())) {
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error("유효하지 않은 관리자 인증 코드입니다."));
+         }
+
+         UserResponse adminResponse = userService.createAdmin(request, currentUserId);
+         return ResponseEntity.ok(ApiResponse.success(adminResponse));
+      } catch (IllegalArgumentException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error(e.getMessage()));
+      }
+   }
+
+    // 통합 로그인 (일반, 관리자)
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<Map<String,Object>>> login(@Valid @RequestBody LoginRequest request){
         // UserResponse userInfo = userService.getUserInfo(request.getEmail());
