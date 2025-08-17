@@ -1,7 +1,8 @@
-package org.example.mega_crew.global.security;
+package org.example.mega_crew.global.config;
 
 import lombok.RequiredArgsConstructor;
 import org.example.mega_crew.domain.user.service.OAuth2UserService;
+import org.example.mega_crew.global.security.JwtAuthenticationFilter;
 import org.example.mega_crew.global.security.oauth2.OAuth2AuthenticationFailureHandler;
 import org.example.mega_crew.global.security.oauth2.OAuth2AuthenticationSuccessHandler;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,9 +77,6 @@ public class SecurityConfig {
                         // 퀴즈 관련 (인증 불필요한 경우)
                         .requestMatchers("/api/quiz/**").permitAll()
 
-                        // frame 요청 관련 추가
-                        .requestMatchers("/api/signlanguage/**").permitAll()
-
                         // WebSocket 관련 - 단순화
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/websocket/**").permitAll()
@@ -90,7 +88,11 @@ public class SecurityConfig {
                         .requestMatchers("/favicon.ico").permitAll()
 
                         // 헬스체크 (운영 환경용)
-                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
+
+                        // AI 서버용 토큰 검증 API (인증 불필요)
+                        .requestMatchers("/api/auth/verify-token").permitAll()
+                        .requestMatchers("/api/auth/health").permitAll()
 
                         // 나머지 모든 요청은 인증 필요
                         .anyRequest().authenticated()

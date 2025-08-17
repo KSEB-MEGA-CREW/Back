@@ -1,4 +1,4 @@
-package org.example.mega_crew.global.security;
+package org.example.mega_crew.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,4 +1,4 @@
-package org.example.mega_crew.domain.signlanguage.service;
+package org.example.mega_crew.domain.session;
 
 
 import lombok.*;

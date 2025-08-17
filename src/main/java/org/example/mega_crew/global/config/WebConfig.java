@@ -1,4 +1,4 @@
-package org.example.mega_crew.global.security;
+package org.example.mega_crew.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -21,14 +21,17 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOriginPatterns(
-                        "http://localhost:3000",
-                        "http://localhost:8080",
-                        "http://127.0.0.1:8080",
-                        "http://127.0.0.1:3000"
+                        "http://localhost:3000",          // 프론트엔드 개발서버
+                        "http://localhost:8000",          // AI 서버 로컬
+                        "http://ai-server:8000",          // AI 서버 Docker
+                        "ws://localhost:8000",            // WebSocket 로컬
+                        "ws://ai-server:8000",            // WebSocket Docker
+                        "https://your-frontend-domain.com", // 프로덕션 프론트엔드
+                        "https://your-ai-domain.com"      // 프로덕션 AI서버
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH")
                 .allowedHeaders("*")
                 .allowCredentials(true)
-                .maxAge(3600);
+                .maxAge(3600); // 1시간 캐시
     }
 }
