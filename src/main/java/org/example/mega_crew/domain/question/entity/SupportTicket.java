@@ -6,6 +6,8 @@ import lombok.*;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table
 @Getter
@@ -45,6 +47,12 @@ public class SupportTicket extends BaseEntity {
    @Column(columnDefinition = "TEXT")
    private String adminResponse;
 
+   @Column
+   private LocalDateTime lastEditedDate;  // 사용자가 마지막으로 수정한 날짜
+
+   @Column
+   private LocalDateTime adminResponseDate;  // 관리자 답변 날짜
+
    private Long respondedBy;
 
    // 상태 업데이트 메서드
@@ -66,6 +74,7 @@ public class SupportTicket extends BaseEntity {
       if (isPublic != null) {
          this.isPublic = isPublic;
       }
+      this.lastEditedDate = LocalDateTime.now();
    }
 
    // 관리자 답변 추가
@@ -73,5 +82,6 @@ public class SupportTicket extends BaseEntity {
       this.adminResponse = response;
       this.respondedBy = adminId;
       this.status = TicketStatus.ANSWERED;
+      this.adminResponseDate = LocalDateTime.now();
    }
 }
