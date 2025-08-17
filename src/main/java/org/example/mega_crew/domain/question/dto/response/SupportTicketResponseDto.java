@@ -15,6 +15,7 @@ public class SupportTicketResponseDto {
    private Long id;
    private String userName;
    private TicketCategory category;
+   private Long userId;
    private String subject;
    private String content;
    private Boolean isPublic;
@@ -26,6 +27,7 @@ public class SupportTicketResponseDto {
    public static SupportTicketResponseDto from(SupportTicket ticket) {
       return SupportTicketResponseDto.builder()
           .id(ticket.getId())
+          .userId(ticket.getUser().getId())
           .userName(ticket.getUserName())
           .category(ticket.getCategory())
           .subject(ticket.getSubject())

@@ -104,6 +104,18 @@ public class SupportService {
       return tickets.map(SupportTicketResponseDto::fromPublic);
    }
 
+   public SupportTicketResponseDto getTicketDetailWithPublicAccess(Long userId, Long ticketId) {
+      SupportTicket ticket = supportTicketRepository.findById(ticketId)
+          .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
+
+      // 본인 글이거나 공개 글인 경우만 조회 허용
+      if (!ticket.getUser().getId().equals(userId) && !ticket.getIsPublic()) {
+         throw new IllegalArgumentException("접근 권한이 없습니다.");
+      }
+
+      return SupportTicketResponseDto.from(ticket);
+   }
+
    // 카테고리별 공개 문의 조회
    @Transactional(readOnly = true)
    public Page<SupportTicketResponseDto> getPublicTicketsByCategory(String categoryStr, Pageable pageable) {
