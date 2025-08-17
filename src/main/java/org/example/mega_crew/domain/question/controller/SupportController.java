@@ -158,6 +158,25 @@ public class SupportController {
       }
    }
 
+   // 내 문의 조회
+   @GetMapping("/tickets/{ticketId}")
+   public ResponseEntity<ApiResponse<SupportTicketResponseDto>> getMyTicketDetail(
+       @PathVariable Long ticketId,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long userId = jwtUtil.extractUserId(token);
+
+         SupportTicketResponseDto ticket = supportService.getMyTicketDetail(userId, ticketId);
+
+         return ResponseEntity.ok(ApiResponse.success(ticket));
+      } catch (IllegalArgumentException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error(e.getMessage()));
+      }
+   }
+
    // 문의 상세 조회 (관리자)
    @GetMapping("/admin/tickets/{ticketId}")
    public ResponseEntity<ApiResponse<SupportTicketResponseDto>> getTicketDetailForAdmin(
