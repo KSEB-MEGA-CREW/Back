@@ -118,6 +118,13 @@ public class SupportService {
       return tickets.map(SupportTicketResponseDto::fromPublic);
    }
 
+   public SupportTicketResponseDto getMyTicketDetail(Long userId, Long ticketId) {
+      SupportTicket ticket = supportTicketRepository.findByIdAndUserId(ticketId, userId)
+          .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
+
+      return SupportTicketResponseDto.from(ticket);
+   }
+
    // 상태별 문의 조회 - 관리자
    @Transactional(readOnly = true)
    public Page<SupportTicketResponseDto> getTicketsByStatus(TicketStatus status, Pageable pageable) {

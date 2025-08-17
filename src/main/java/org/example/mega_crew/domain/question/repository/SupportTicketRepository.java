@@ -48,6 +48,9 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, Lo
    @Query("SELECT s FROM SupportTicket s WHERE s.status = :status ORDER BY s.createdDate DESC")
    Page<SupportTicket> findTicketsByStatus(@Param("status") TicketStatus status, Pageable pageable);
 
+   // 내 문의 세부 내용 조회
+   Optional<SupportTicket> findByIdAndUserId(Long id, Long userId);
+
    // 관리자용 쿼리들 추가
    @Query("SELECT s FROM SupportTicket s ORDER BY s.createdDate DESC")
    Page<SupportTicket> findAllTicketsForAdmin(Pageable pageable);
