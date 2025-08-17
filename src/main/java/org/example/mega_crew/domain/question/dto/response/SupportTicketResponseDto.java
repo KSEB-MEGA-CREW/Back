@@ -23,6 +23,8 @@ public class SupportTicketResponseDto {
    private String adminResponse;
    private LocalDateTime createdDate;
    private LocalDateTime modifiedDate;
+   private LocalDateTime lastEditedDate;
+   private LocalDateTime adminResponseDate;
 
    public static SupportTicketResponseDto from(SupportTicket ticket) {
       return SupportTicketResponseDto.builder()
@@ -37,6 +39,8 @@ public class SupportTicketResponseDto {
           .adminResponse(ticket.getAdminResponse())
           .createdDate(ticket.getCreatedDate())
           .modifiedDate(ticket.getModifiedDate())
+          .lastEditedDate(ticket.getLastEditedDate())
+          .adminResponseDate(ticket.getAdminResponseDate())
           .build();
    }
 
