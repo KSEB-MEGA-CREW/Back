@@ -36,7 +36,7 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
     // CORS 허용 도메인에 AI 서버 주소 추가
-    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080,http://13.209.48.108:5000}")
+    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080,http://localhost:8000,http://127.0.0.1:8000}")
     private String allowedOrigins;
 
     @Bean
@@ -86,6 +86,9 @@ public class SecurityConfig {
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/favicon.ico").permitAll()
+
+                        .requestMatchers("/health").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
 
                         // 헬스체크 (운영 환경용)
                         .requestMatchers("/actuator/**").permitAll()
