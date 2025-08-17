@@ -1,5 +1,6 @@
 package org.example.mega_crew.domain.question.repository;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.repository.query.Param;
 import org.example.mega_crew.domain.question.entity.SupportTicket;
 import org.example.mega_crew.domain.question.entity.TicketCategory;
@@ -61,4 +62,8 @@ public interface SupportTicketRepository extends JpaRepository<SupportTicket, Lo
    // 특정 티켓 조회 (관리자용)
    @Query("SELECT s FROM SupportTicket s WHERE s.id = :ticketId")
    Optional<SupportTicket> findTicketById(@Param("ticketId") Long ticketId);
+
+   @Modifying
+   @Query("DELETE FROM SupportTicket st WHERE st.user.id = :userId")
+   void deleteByUserId(@Param("userId") Long userId);
 }

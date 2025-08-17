@@ -3,6 +3,7 @@ package org.example.mega_crew.domain.quiz.repository;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.example.mega_crew.domain.quiz.entity.QuizRecords;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -23,4 +24,8 @@ public interface QuizRecordRepository extends JpaRepository<QuizRecords, Long> {
    List<Object[]> getMonthlyQuizStatsByUser(@Param("startDate") LocalDate startDate,
                                             @Param("endDate") LocalDate endDate,
                                             @Param("userId") Long userId);
+
+   @Modifying
+   @Query("DELETE FROM QuizRecords qr WHERE qr.user.id = :userId")
+   void deleteByUserId(@Param("userId") Long userId);
 }

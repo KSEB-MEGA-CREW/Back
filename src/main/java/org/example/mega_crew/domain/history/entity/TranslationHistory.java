@@ -57,6 +57,8 @@ public class TranslationHistory extends BaseEntity {
    @Builder.Default
    private Boolean isExpired = false;
 
+
+
    // 만료 기간 설정
    @PrePersist
    public void setExpirationDate() {

@@ -30,6 +30,10 @@ public interface TranslationHistoryRepository extends JpaRepository<TranslationH
    @Query("SELECT COUNT(t) FROM TranslationHistory t WHERE t.user.id = :userId AND t.workType = :workType AND t.processingStatus = :status AND t.isExpired = false")
    Long countActiveByUserIdAndWorkTypeAndProcessingStatus(@Param("userId") Long userId, @Param("workType") WorkType workType, @Param("status") String status);
 
+   @Modifying
+   @Query("DELETE FROM TranslationHistory th WHERE th.user.id = :userId")
+   void deleteByUserId(@Param("userId") Long userId);
+
    // 만료 관리 쿼리들
    @Modifying
    @Query("UPDATE TranslationHistory t SET t.isExpired = true WHERE t.expiresAt < :now AND t.isExpired = false")

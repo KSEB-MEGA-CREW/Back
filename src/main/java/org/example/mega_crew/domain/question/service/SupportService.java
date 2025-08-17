@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.question.dto.request.AdminReplyRequestDto;
 import org.example.mega_crew.domain.question.dto.request.SupportTicketRequestDto;
+import org.example.mega_crew.domain.question.dto.request.SupportTicketUpdateRequestDto;
 import org.example.mega_crew.domain.question.dto.response.SupportTicketResponseDto;
 import org.example.mega_crew.domain.question.entity.SupportTicket;
 import org.example.mega_crew.domain.question.entity.TicketCategory;
@@ -104,6 +105,18 @@ public class SupportService {
       return tickets.map(SupportTicketResponseDto::fromPublic);
    }
 
+   public SupportTicketResponseDto getTicketDetailWithPublicAccess(Long userId, Long ticketId) {
+      SupportTicket ticket = supportTicketRepository.findById(ticketId)
+          .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
+
+      // 본인 글이거나 공개 글인 경우만 조회 허용
+      if (!ticket.getUser().getId().equals(userId) && !ticket.getIsPublic()) {
+         throw new IllegalArgumentException("접근 권한이 없습니다.");
+      }
+
+      return SupportTicketResponseDto.from(ticket);
+   }
+
    // 카테고리별 공개 문의 조회
    @Transactional(readOnly = true)
    public Page<SupportTicketResponseDto> getPublicTicketsByCategory(String categoryStr, Pageable pageable) {
@@ -123,6 +136,59 @@ public class SupportService {
           .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없습니다."));
 
       return SupportTicketResponseDto.from(ticket);
+   }
+
+   // 게시글 수정
+   public SupportTicketResponseDto updateTicket(Long userId, Long ticketId, SupportTicketUpdateRequestDto request) {
+      SupportTicket ticket = supportTicketRepository.findByIdAndUserId(ticketId, userId)
+          .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없거나 수정 권한이 없습니다."));
+
+      // 이미 답변이 달린 경우 수정 제한
+      if (ticket.getStatus() != TicketStatus.PENDING) {
+         throw new IllegalArgumentException("답변이 완료된 문의는 수정할 수 없습니다.");
+      }
+      TicketCategory category = null;
+      if (request.getCategory() != null) {
+         try {
+            category = TicketCategory.valueOf(request.getCategory().toUpperCase());
+         } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("유효하지 않은 카테고리입니다: " + request.getCategory());
+         }
+      }
+
+      ticket.updateTicket(request.getSubject(), request.getContent(), category, request.getIsPublic());
+      SupportTicket savedTicket = supportTicketRepository.save(ticket);
+
+      log.info("문의 수정 완료 - 티켓 ID: {}, 사용자 ID: {}", ticketId, userId);
+
+      return SupportTicketResponseDto.from(savedTicket);
+   }
+
+   // 게시글 삭제 (소프트 삭제)
+   public void deleteTicket(Long userId, Long ticketId) {
+      SupportTicket ticket = supportTicketRepository.findByIdAndUserId(ticketId, userId)
+          .orElseThrow(() -> new IllegalArgumentException("문의를 찾을 수 없거나 삭제 권한이 없습니다."));
+
+      // 이미 답변이 달린 경우 삭제 제한
+      if (ticket.getStatus() != TicketStatus.PENDING) {
+         throw new IllegalArgumentException("답변이 완료된 문의는 삭제할 수 없습니다.");
+      }
+
+      supportTicketRepository.delete(ticket);
+
+      log.info("문의 삭제 완료 - 티켓 ID: {}, 사용자 ID: {}", ticketId, userId);
+   }
+
+   // 관리자용 게시글 삭제
+   public void deleteTicketByAdmin(Long adminId, Long ticketId) throws AccessDeniedException {
+      validateAdminRole(adminId);
+
+      SupportTicket ticket = supportTicketRepository.findTicketById(ticketId)
+          .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 문의입니다."));
+
+      supportTicketRepository.delete(ticket);
+
+      log.info("관리자 문의 삭제 완료 - 티켓 ID: {}, 관리자 ID: {}", ticketId, adminId);
    }
 
    // 상태별 문의 조회 - 관리자

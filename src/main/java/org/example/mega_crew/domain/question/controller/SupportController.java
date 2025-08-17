@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.question.dto.request.AdminReplyRequestDto;
 import org.example.mega_crew.domain.question.dto.request.SupportTicketRequestDto;
+import org.example.mega_crew.domain.question.dto.request.SupportTicketUpdateRequestDto;
 import org.example.mega_crew.domain.question.dto.response.SupportTicketResponseDto;
 import org.example.mega_crew.domain.question.entity.TicketStatus;
 import org.example.mega_crew.domain.question.service.SupportService;
@@ -160,7 +161,39 @@ public class SupportController {
 
    // 내 문의 조회
    @GetMapping("/tickets/{ticketId}")
-   public ResponseEntity<ApiResponse<SupportTicketResponseDto>> getMyTicketDetail(
+   public ResponseEntity<ApiResponse<SupportTicketResponseDto>> getTicketDetail(
+       @PathVariable Long ticketId, HttpServletRequest httpRequest) {
+
+      String token = jwtUtil.extractTokenFromRequest(httpRequest);
+      Long userId = jwtUtil.extractUserId(token);
+
+      SupportTicketResponseDto ticket = supportService.getTicketDetailWithPublicAccess(userId, ticketId);
+      return ResponseEntity.ok(ApiResponse.success(ticket));
+   }
+
+   // 게시글 수정
+   @PutMapping("/tickets/{ticketId}")
+   public ResponseEntity<ApiResponse<SupportTicketResponseDto>> updateTicket(
+       @PathVariable Long ticketId,
+       @Valid @RequestBody SupportTicketUpdateRequestDto request,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long userId = jwtUtil.extractUserId(token);
+
+         SupportTicketResponseDto response = supportService.updateTicket(userId, ticketId, request);
+
+         return ResponseEntity.ok(ApiResponse.success(response));
+      } catch (IllegalArgumentException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error(e.getMessage()));
+      }
+   }
+
+   // 게시글 삭제
+   @DeleteMapping("/tickets/{ticketId}")
+   public ResponseEntity<ApiResponse<String>> deleteTicket(
        @PathVariable Long ticketId,
        HttpServletRequest httpRequest) {
 
@@ -168,9 +201,31 @@ public class SupportController {
          String token = jwtUtil.extractTokenFromRequest(httpRequest);
          Long userId = jwtUtil.extractUserId(token);
 
-         SupportTicketResponseDto ticket = supportService.getMyTicketDetail(userId, ticketId);
+         supportService.deleteTicket(userId, ticketId);
 
-         return ResponseEntity.ok(ApiResponse.success(ticket));
+         return ResponseEntity.ok(ApiResponse.success("문의가 성공적으로 삭제되었습니다."));
+      } catch (IllegalArgumentException e) {
+         return ResponseEntity.badRequest()
+             .body(ApiResponse.error(e.getMessage()));
+      }
+   }
+
+   // 관리자용 게시글 삭제
+   @DeleteMapping("/admin/tickets/{ticketId}")
+   public ResponseEntity<ApiResponse<String>> deleteTicketByAdmin(
+       @PathVariable Long ticketId,
+       HttpServletRequest httpRequest) {
+
+      try {
+         String token = jwtUtil.extractTokenFromRequest(httpRequest);
+         Long adminId = jwtUtil.extractUserId(token);
+
+         supportService.deleteTicketByAdmin(adminId, ticketId);
+
+         return ResponseEntity.ok(ApiResponse.success("문의가 성공적으로 삭제되었습니다."));
+      } catch (AccessDeniedException e) {
+         return ResponseEntity.status(403)
+             .body(ApiResponse.error("관리자 권한이 필요합니다."));
       } catch (IllegalArgumentException e) {
          return ResponseEntity.badRequest()
              .body(ApiResponse.error(e.getMessage()));
