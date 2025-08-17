@@ -3,6 +3,10 @@ package org.example.mega_crew.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.mega_crew.domain.history.repository.TranslationHistoryRepository;
+import org.example.mega_crew.domain.question.repository.SupportTicketRepository;
+import org.example.mega_crew.domain.quiz.repository.QuizCategoryRecordRepository;
+import org.example.mega_crew.domain.quiz.repository.QuizRecordRepository;
 import org.example.mega_crew.domain.user.dto.request.AdminSignupRequest;
 import org.example.mega_crew.domain.user.dto.request.LoginRequest;
 import org.example.mega_crew.domain.user.dto.request.UserSignupRequest;
@@ -14,6 +18,7 @@ import org.example.mega_crew.domain.user.entity.AuthProvider;
 import org.example.mega_crew.domain.user.entity.UserRole;
 import org.example.mega_crew.domain.user.repository.UserRepository;
 import org.example.mega_crew.global.security.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -32,6 +37,11 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
    private final UserRepository userRepository;
    private final PasswordEncoder passwordEncoder;
    private final JwtUtil jwtUtil;
+
+   private final TranslationHistoryRepository translationHistoryRepository;
+   private final SupportTicketRepository supportTicketRepository;
+   private final QuizRecordRepository quizRecordRepository;
+   private final QuizCategoryRecordRepository quizCategoryRecordRepository;
 
    // email, username 중복 처리 후 user entity build
    public UserResponse signup(UserSignupRequest request) {
@@ -242,12 +252,48 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
 
       log.info("사용자 계정 삭제 시작 - User ID: {}, Email: {}", userId, user.getEmail());
 
-      userRepository.delete(user);
+      try {
+         // 관련 데이터 먼저 삭제 (FK 제약조건 해결)
+         deleteUserRelatedData(userId);
 
-      log.info("사용자 계정 삭제 완료 - User ID: {}", userId);
+         // 사용자 삭제
+         userRepository.delete(user);
+
+         log.info("사용자 계정 삭제 완료 - User ID: {}", userId);
+      } catch (Exception e) {
+         log.error("사용자 계정 삭제 중 오류 발생 - User ID: {}, Error: {}", userId, e.getMessage());
+         throw new RuntimeException("계정 삭제 중 오류가 발생했습니다.", e);
+      }
    }
 
-   // 관련 데이터 정리 메서드 (필요한 경우 구현)
+   /**
+    * 사용자와 관련된 모든 데이터를 삭제하는 메서드
+    * FK 제약조건을 위반하지 않도록 순서에 주의
+    */
    private void deleteUserRelatedData(Long userId) {
+      log.info("사용자 관련 데이터 삭제 시작 - User ID: {}", userId);
+
+      try {
+         // 번역 기록 삭제
+         translationHistoryRepository.deleteByUserId(userId);
+         log.debug("번역 기록 삭제 완료 - User ID: {}", userId);
+
+         // 지원 티켓 삭제
+         supportTicketRepository.deleteByUserId(userId);
+         log.debug("지원 티켓 삭제 완료 - User ID: {}", userId);
+
+         // 퀴즈 기록 삭제
+         quizRecordRepository.deleteByUserId(userId);
+         log.debug("퀴즈 기록 삭제 완료 - User ID: {}", userId);
+
+         // 퀴즈 카테고리 기록 삭제
+         quizCategoryRecordRepository.deleteByUserId(userId);
+         log.debug("퀴즈 카테고리 기록 삭제 완료 - User ID: {}", userId);
+
+         log.info("사용자 관련 데이터 삭제 완료 - User ID: {}", userId);
+      } catch (Exception e) {
+         log.error("사용자 관련 데이터 삭제 중 오류 발생 - User ID: {}, Error: {}", userId, e.getMessage());
+         throw new RuntimeException("관련 데이터 삭제 중 오류가 발생했습니다.", e);
+      }
    }
 }

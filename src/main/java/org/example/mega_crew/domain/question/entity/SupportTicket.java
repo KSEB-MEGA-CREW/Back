@@ -1,6 +1,7 @@
 package org.example.mega_crew.domain.question.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
@@ -49,6 +50,22 @@ public class SupportTicket extends BaseEntity {
    // 상태 업데이트 메서드
    public void updateStatus(TicketStatus status) {
       this.status = status;
+   }
+
+   // 게시글 수정
+   public void updateTicket(String subject, String content, TicketCategory category, Boolean isPublic) {
+      if (subject != null && !subject.trim().isEmpty()) {
+         this.subject = subject;
+      }
+      if (content != null && !content.trim().isEmpty()) {
+         this.content = content;
+      }
+      if (category != null) {
+         this.category = category;
+      }
+      if (isPublic != null) {
+         this.isPublic = isPublic;
+      }
    }
 
    // 관리자 답변 추가
