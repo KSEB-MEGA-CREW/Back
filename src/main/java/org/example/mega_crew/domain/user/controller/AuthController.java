@@ -119,12 +119,15 @@ public class AuthController {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UsernameNotFoundException("존재하지 않는 사용자입니다."));
 
-        UserResponse userInfo = UserResponse.builder()
-                .id(userId)
-                .email(email)
-                .username(user.getUsername())
-                .hearing(String.valueOf(user.getHearingStatus()))
-                .build();
+       UserResponse userInfo = UserResponse.builder()
+           .id(userId)
+           .email(email)
+           .username(user.getUsername())
+           .authProvider(user.getAuthProvider())
+           .role(user.getRole())
+           .hearing(String.valueOf(user.getHearingStatus()))
+           .createdDate(user.getCreatedDate())
+           .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfo));
     }
