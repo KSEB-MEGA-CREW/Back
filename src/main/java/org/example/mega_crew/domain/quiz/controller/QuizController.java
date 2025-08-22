@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.quiz.dto.request.QuizRecordSaveRequestDto;
 import org.example.mega_crew.domain.quiz.dto.response.QuizResponseDto;
+import org.example.mega_crew.domain.quiz.entity.IncorrectQuizRecords;
 import org.example.mega_crew.domain.quiz.service.QuizService;
 import org.example.mega_crew.domain.user.service.UserService;
 import org.example.mega_crew.global.common.ApiResponse;
@@ -90,6 +91,45 @@ public class QuizController {
     Map<String, Double> monthlyStats = quizService.getUserMonthlyQuizStats(year, month, userId);
     return ResponseEntity.ok(monthlyStats);
   }
+
+   // 사용자별 오답 조회
+   @GetMapping("/incorrect-answers/user/{userId}")
+   @Operation(summary = "사용자별 오답 조회", description = "특정 사용자의 모든 오답 기록을 조회합니다.")
+   public ResponseEntity<ApiResponse<List<IncorrectQuizRecords>>> getUserIncorrectAnswers(
+       @PathVariable Long userId,
+       HttpServletRequest request) {
+
+      try {
+         authenticationHelper.validateUserAccess(request, userId);
+
+         List<IncorrectQuizRecords> incorrectAnswers = quizService.getUserIncorrectAnswers(userId);
+         return ResponseEntity.ok(ApiResponse.success(incorrectAnswers));
+      } catch (Exception e) {
+         log.error("오답 조회 실패 - 사용자 ID: {}", userId, e);
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+             .body(ApiResponse.error("오답 조회 실패: " + e.getMessage()));
+      }
+   }
+
+   // 사용자별 카테고리별 오답 조회
+   @GetMapping("/incorrect-answers/user/{userId}/category/{category}")
+   @Operation(summary = "사용자별 카테고리별 오답 조회", description = "특정 사용자의 특정 카테고리 오답 기록을 조회합니다.")
+   public ResponseEntity<ApiResponse<List<IncorrectQuizRecords>>> getUserIncorrectAnswersByCategory(
+       @PathVariable Long userId,
+       @PathVariable String category,
+       HttpServletRequest request) {
+
+      try {
+         authenticationHelper.validateUserAccess(request, userId);
+
+         List<IncorrectQuizRecords> incorrectAnswers = quizService.getUserIncorrectAnswersByCategory(userId, category);
+         return ResponseEntity.ok(ApiResponse.success(incorrectAnswers));
+      } catch (Exception e) {
+         log.error("카테고리별 오답 조회 실패 - 사용자 ID: {}, 카테고리: {}", userId, category, e);
+         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+             .body(ApiResponse.error("카테고리별 오답 조회 실패: " + e.getMessage()));
+      }
+   }
 
 
   // 일단 놔뒀습니다, 불필요할 시 추후 삭제 필요
