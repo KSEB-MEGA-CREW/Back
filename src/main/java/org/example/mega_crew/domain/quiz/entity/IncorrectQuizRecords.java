@@ -6,7 +6,7 @@ import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
 
 @Entity
-@Table(name = "quiz_incorrect_records")
+@Table(name = "incorrect_quiz_records")
 @Getter
 @AllArgsConstructor
 @Builder

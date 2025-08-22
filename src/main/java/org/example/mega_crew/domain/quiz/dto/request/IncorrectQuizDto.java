@@ -14,5 +14,5 @@ public class IncorrectQuizDto {
    private String category;
    private String signDescription;
    private String subDescription;
-   private String userAnswer;
+   private String userIncorrectAnswer;
 }
