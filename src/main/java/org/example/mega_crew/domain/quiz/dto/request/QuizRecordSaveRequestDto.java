@@ -13,5 +13,5 @@ public class QuizRecordSaveRequestDto {
    private Long userId;
    private int correctCount;
    private Map<String, Integer> categoryCorrectCounts;
-   private List<> incorrectAnswer;
+   private List<IncorrectQuizDto> incorrectAnswers;
 }
