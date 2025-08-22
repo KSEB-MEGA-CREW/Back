@@ -126,7 +126,7 @@ public class QuizService {
                  .category(incorrectDto.getCategory())
                  .signDescription(incorrectDto.getSignDescription())
                  .subDescription(incorrectDto.getSubDescription())
-                 .userAnswer(incorrectDto.getUserAnswer())
+                 .userAnswer(incorrectDto.getUserIncorrectAnswer())
                  .user(user)
                  .build())
              .collect(Collectors.toList());
