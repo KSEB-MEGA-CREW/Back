@@ -13,8 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 public class QuizResponseDto { // 프론트와 변수명 일치
   private String word;
-  private String signDescription;
-  private String subDescription;
+  private String signDescription; // 수형 설명
+  private String subDescription; // 수어 영상
   private String category;
   private List<ChoiceDto> choices;
 
