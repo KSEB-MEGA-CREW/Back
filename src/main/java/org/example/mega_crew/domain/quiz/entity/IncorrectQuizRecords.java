@@ -21,9 +21,6 @@ public class IncorrectQuizRecords extends BaseEntity {
    private String word;
 
    @Column(nullable = false)
-   private String meaning;
-
-   @Column(nullable = false)
    private String category;
 
    @Column(nullable = false, columnDefinition = "TEXT")
@@ -32,22 +29,17 @@ public class IncorrectQuizRecords extends BaseEntity {
    @Column(columnDefinition = "TEXT")
    private String subDescription;
 
-   @Column(nullable = false)
-   private String userAnswer;
-
    @ManyToOne(fetch = FetchType.LAZY)
    @JoinColumn(name = "user_id")
    private User user;
 
-   public IncorrectQuizRecords(String word, String meaning, String category,
+   public IncorrectQuizRecords(String word, String category,
                                String signDescription, String subDescription,
-                               String userAnswer, User user) {
+                               User user) {
       this.word = word;
-      this.meaning = meaning;
       this.category = category;
       this.signDescription = signDescription;
       this.subDescription = subDescription;
-      this.userAnswer = userAnswer;
       this.user = user;
    }
 }
