@@ -115,26 +115,33 @@ public class QuizService {
 
    // 오답 기록 저장 메서드 추가
    public void saveIncorrectAnswers(QuizRecordSaveRequestDto dto) {
-      if (dto.getIncorrectAnswers() != null && !dto.getIncorrectAnswers().isEmpty()) {
+      log.info("saveIncorrectAnswers 시작 - userId: {}", dto.getUserId());
+      log.info("incorrectAnswers 데이터: {}", dto.getIncorrectAnswers());
+
+     if (dto.getIncorrectAnswers() != null && !dto.getIncorrectAnswers().isEmpty()) {
+        log.info("오답 데이터 개수: {}", dto.getIncorrectAnswers().size());
          User user = userRepository.findById(dto.getUserId())
              .orElseThrow(() -> new IllegalArgumentException("사용자 없음: " + dto.getUserId()));
 
          List<IncorrectQuizRecords> incorrectRecords = dto.getIncorrectAnswers().stream()
              .map(incorrectDto -> IncorrectQuizRecords.builder()
                  .word(incorrectDto.getWord())
-                 .meaning(incorrectDto.getMeaning())
                  .category(incorrectDto.getCategory())
                  .signDescription(incorrectDto.getSignDescription())
                  .subDescription(incorrectDto.getSubDescription())
-                 .userAnswer(incorrectDto.getUserIncorrectAnswer())
                  .user(user)
                  .build())
              .collect(Collectors.toList());
 
+        log.info("저장할 오답 레코드 개수: {}", incorrectRecords.size());
          incorrectRecordRepository.saveAll(incorrectRecords);
          log.info("오답 기록 저장 완료 - 사용자 ID: {}, 오답 개수: {}", dto.getUserId(), incorrectRecords.size());
       }
+     else {
+        log.info("오답 데이터가 없거나 비어있음");
+     }
    }
+
 
    // 사용자별 오답 조회
    @Transactional(readOnly = true)

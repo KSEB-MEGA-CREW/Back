@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 public class IncorrectQuizDto {
 
    private String word;
-   private String meaning;
    private String category;
    private String signDescription;
    private String subDescription;
-   private String userIncorrectAnswer;
 }
