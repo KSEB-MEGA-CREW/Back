@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.history.repository.TranslationHistoryRepository;
 import org.example.mega_crew.domain.question.repository.SupportTicketRepository;
+import org.example.mega_crew.domain.quiz.repository.IncorrectQuizRecordRepository;
 import org.example.mega_crew.domain.quiz.repository.QuizCategoryRecordRepository;
 import org.example.mega_crew.domain.quiz.repository.QuizRecordRepository;
 import org.example.mega_crew.domain.user.dto.request.AdminSignupRequest;
@@ -42,6 +43,7 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
    private final SupportTicketRepository supportTicketRepository;
    private final QuizRecordRepository quizRecordRepository;
    private final QuizCategoryRecordRepository quizCategoryRecordRepository;
+   private final IncorrectQuizRecordRepository incorrectQuizRecordRepository;
 
    // email, username 중복 처리 후 user entity build
    public UserResponse signup(UserSignupRequest request) {
@@ -289,6 +291,10 @@ public class UserService implements UserDetailsService { // 모든 타입의 Use
          // 퀴즈 카테고리 기록 삭제
          quizCategoryRecordRepository.deleteByUserId(userId);
          log.debug("퀴즈 카테고리 기록 삭제 완료 - User ID: {}", userId);
+
+         // 틀린 퀴즈 기록 삭제
+         incorrectQuizRecordRepository.deleteByUserId(userId);
+         log.debug("틀린 퀴즈 기록 삭제 완료 - User ID: {}", userId);
 
          log.info("사용자 관련 데이터 삭제 완료 - User ID: {}", userId);
       } catch (Exception e) {
