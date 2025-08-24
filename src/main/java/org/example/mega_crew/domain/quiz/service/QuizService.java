@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.quiz.dto.choice.ChoiceDto;
 import org.example.mega_crew.domain.quiz.dto.request.QuizRecordSaveRequestDto;
+import org.example.mega_crew.domain.quiz.dto.response.IncorrectQuizResponseDto;
 import org.example.mega_crew.domain.quiz.dto.response.QuizResponseDto;
 import org.example.mega_crew.domain.quiz.entity.IncorrectQuizRecords;
 import org.example.mega_crew.domain.quiz.entity.QuizCategoryRecords;
@@ -143,16 +144,22 @@ public class QuizService {
    }
 
 
-   // 사용자별 오답 조회
+   // 사용자 오답 조회
    @Transactional(readOnly = true)
-   public List<IncorrectQuizRecords> getUserIncorrectAnswers(Long userId) {
-      return incorrectRecordRepository.findByUserIdOrderByCreatedDateDesc(userId);
+   public List<IncorrectQuizResponseDto> getUserIncorrectAnswers(Long userId) {
+      List<IncorrectQuizRecords> records = incorrectRecordRepository.findByUserIdOrderByCreatedDateDesc(userId);
+      return records.stream()
+          .map(IncorrectQuizResponseDto::from)
+          .collect(Collectors.toList());
    }
 
-   // 사용자별 카테고리별 오답 조회
+   // 사용자 카테고리별 오답 조회
    @Transactional(readOnly = true)
-   public List<IncorrectQuizRecords> getUserIncorrectAnswersByCategory(Long userId, String category) {
-      return incorrectRecordRepository.findByUserIdAndCategoryOrderByCreatedDateDesc(userId, category);
+   public List<IncorrectQuizResponseDto> getUserIncorrectAnswersByCategory(Long userId, String category) {
+      List<IncorrectQuizRecords> records = incorrectRecordRepository.findByUserIdAndCategoryOrderByCreatedDateDesc(userId, category);
+      return records.stream()
+          .map(IncorrectQuizResponseDto::from)
+          .collect(Collectors.toList());
    }
 
   // 특정 월의 사용자 일별 퀴즈 정답률 조회
