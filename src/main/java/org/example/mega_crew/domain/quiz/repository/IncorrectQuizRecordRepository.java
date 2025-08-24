@@ -1,8 +1,10 @@
 package org.example.mega_crew.domain.quiz.repository;
 
-import io.lettuce.core.dynamic.annotation.Param;
+import org.springframework.data.repository.query.Param;
+import jakarta.transaction.Transactional;
 import org.example.mega_crew.domain.quiz.entity.IncorrectQuizRecords;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -20,4 +22,9 @@ public interface IncorrectQuizRecordRepository extends JpaRepository<IncorrectQu
    // 특정 단어의 오답 횟수 조회
    @Query("SELECT COUNT(qir) FROM IncorrectQuizRecords qir WHERE qir.user.id = :userId AND qir.word = :word")
    Long countByUserIdAndWord(@Param("userId") Long userId, @Param("word") String word);
+
+   @Modifying
+   @Transactional
+   @Query("DELETE FROM IncorrectQuizRecords qir WHERE qir.user.id = :userId")
+   void deleteByUserId(@Param("userId") Long userId);
 }
