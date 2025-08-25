@@ -29,6 +29,14 @@ spring:
     allow-circular-references: true
 
   # ===========================================================================
+  # DATABASE INITIALIZATION (data.sql 사용을 위한 설정)
+  # ===========================================================================
+  sql:
+    init:
+       mode: always  # 항상 data.sql 실행 (개발용: always, 운영용: never)
+       encoding: utf-8
+
+  # ===========================================================================
   # OAUTH2 CONFIGURATION
   # ===========================================================================
   security:
@@ -106,6 +114,7 @@ spring:
       ddl-auto: ${DDL_AUTO:update}
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: ${SHOW_SQL:false}
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
