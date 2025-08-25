@@ -45,5 +45,20 @@ public interface TranslationHistoryRepository extends JpaRepository<TranslationH
 
    @Query("SELECT t FROM TranslationHistory t WHERE t.user.id = :userId ORDER BY t.createdDate DESC")
    List<TranslationHistory> findByUserIdOrderByCreatedDateDesc(@Param("userId") Long userId);
+
+   // 평가가 있는/없는 히스토리 조회
+   @Query("SELECT t FROM TranslationHistory t WHERE t.user.id = :userId AND t.feedback IS NOT NULL AND t.isExpired = false ORDER BY t.feedbackSubmittedAt DESC")
+   Page<TranslationHistory> findActiveFeedbackByUserId(@Param("userId") Long userId, Pageable pageable);
+
+   @Query("SELECT t FROM TranslationHistory t WHERE t.user.id = :userId AND t.feedback IS NULL AND t.isExpired = false ORDER BY t.createdDate DESC")
+   Page<TranslationHistory> findActiveWithoutFeedbackByUserId(@Param("userId") Long userId, Pageable pageable);
+
+   // 평가별 통계
+   @Query("SELECT COUNT(t) FROM TranslationHistory t WHERE t.user.id = :userId AND t.feedback = :feedback AND t.isExpired = false")
+   Long countByUserIdAndFeedback(@Param("userId") Long userId, @Param("feedback") String feedback);
+
+   // 특정 작업 타입의 평가별 통계
+   @Query("SELECT COUNT(t) FROM TranslationHistory t WHERE t.user.id = :userId AND t.workType = :workType AND t.feedback = :feedback AND t.isExpired = false")
+   Long countByUserIdAndWorkTypeAndFeedback(@Param("userId") Long userId, @Param("workType") WorkType workType, @Param("feedback") String feedback);
 }
 

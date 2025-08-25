@@ -57,6 +57,17 @@ public class TranslationHistory extends BaseEntity {
    @Builder.Default
    private Boolean isExpired = false;
 
+   @Column(name = "feedback")
+   private String feedback;
+
+   @Column(name = "translated_text")
+   private String translatedText;
+
+   @Column(name = "translated_time")
+   private String translatedTime;
+
+   @Column(name = "feedback_submitted_at")
+   private LocalDateTime feedbackSubmittedAt;
 
 
    // 만료 기간 설정
@@ -75,5 +86,18 @@ public class TranslationHistory extends BaseEntity {
    // 수동 만료 처리
    public void markAsExpired() {
       this.isExpired = true;
+   }
+
+   // 번역 평가 업데이트
+   public void updateFeedback(String feedback, String translatedText, String translatedTime) {
+      this.feedback = feedback;
+      this.translatedText = translatedText;
+      this.translatedTime = translatedTime;
+      this.feedbackSubmittedAt = LocalDateTime.now();
+   }
+
+   // 평가 여부 확인
+   public boolean hasFeedback() {
+      return this.feedback != null && this.feedbackSubmittedAt != null;
    }
 }

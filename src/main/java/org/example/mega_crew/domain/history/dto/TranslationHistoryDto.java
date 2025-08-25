@@ -25,4 +25,9 @@ public class TranslationHistoryDto {
    private LocalDateTime modifiedDate;
    private LocalDateTime expiresAt;
    private Boolean isExpired;
+
+   private String feedback;
+   private String translatedText;
+   private String translatedTime;
+   private LocalDateTime feedbackSubmittedAt;
 }
