@@ -57,11 +57,6 @@ services:
       - MAX_FILE_SIZE=${MAX_FILE_SIZE:-15MB}
       - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-15MB}
 
-      # 프레임 검증 설정
-      - FRAME_MAX_SIZE_MB=${FRAME_MAX_SIZE_MB:-10}
-      - FRAME_MIN_SIZE_KB=${FRAME_MIN_SIZE_KB:-1}
-      - FRAME_MAX_TIMESTAMP_DIFF_MINUTES=${FRAME_MAX_TIMESTAMP_DIFF_MINUTES:-5}
-
       # AWS 설정 (운영 환경)
       - AWS_REGION=${AWS_REGION:-ap-northeast-2}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME}
@@ -89,16 +84,6 @@ services:
     volumes:
       - /opt/mega-crew/logs:/app/logs
       - /opt/mega-crew/config:/app/config:ro  # 추가 설정 파일 (선택사항)
-
-    # 리소스 제한 (운영 환경)
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
 
     networks:
       - app-network
@@ -152,16 +137,6 @@ services:
       retries: 5
       start_period: 60s
 
-    # 리소스 제한
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
-
     networks:
       - app-network
 
@@ -205,10 +180,7 @@ services:
 networks:
   app-network:
     driver: bridge
-    name: mega-crew-network-prod
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
+    name: sudam-prod
 
 # 운영 환경에서는 named volume 사용하지 않음 (호스트 디렉토리 사용)
 volumes: {}
