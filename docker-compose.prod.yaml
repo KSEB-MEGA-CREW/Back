@@ -60,6 +60,9 @@ services:
       # AWS 설정 (ECR 로그인용만 유지)
       - AWS_REGION=${AWS_REGION:-ap-northeast-2}
 
+      # ADMIN signup code
+      - ADMIN_SIGNUP_CODE=${ADMIN_SIGNUP_CODE:-MEGACREW_ADMIN_DEFAULT}
+
     # 의존성 설정
     depends_on:
       db:
