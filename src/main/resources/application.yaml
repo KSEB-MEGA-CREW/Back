@@ -112,7 +112,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: ${DDL_AUTO:update}
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: ${SHOW_SQL:false}
     defer-datasource-initialization: true
     properties:
