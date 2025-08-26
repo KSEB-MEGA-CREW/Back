@@ -85,6 +85,16 @@ services:
       - /opt/mega-crew/logs:/app/logs
       - /opt/mega-crew/config:/app/config:ro  # 추가 설정 파일 (선택사항)
 
+    # 리소스 제한 (운영 환경)
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
     networks:
       - app-network
 
@@ -137,6 +147,16 @@ services:
       retries: 5
       start_period: 60s
 
+    # 리소스 제한
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
     networks:
       - app-network
 
@@ -180,7 +200,10 @@ services:
 networks:
   app-network:
     driver: bridge
-    name: sudam-prod
+    name: mega-crew-network-prod
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
 
 # 운영 환경에서는 named volume 사용하지 않음 (호스트 디렉토리 사용)
 volumes: {}
