@@ -37,7 +37,7 @@ spring:
       ddl-auto: ${DDL_AUTO:update}
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
@@ -235,6 +235,12 @@ springdoc:
     display-request-duration: true
     doc-expansion: none
     config-url: /v3/api-docs/swagger-config  # 명시적 설정 추가
+
+# ===== 관리자 설정 추가 ===== (여기에 추가)
+application:
+  admin:
+    signup:
+      code: ${ADMIN_SIGNUP_CODE:-MEGACREW_ADMIN_DEFAULT}
 
 # ===== 프로파일별 추가 설정 =====
 ---
