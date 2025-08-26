@@ -17,6 +17,11 @@ spring:
   application:
     name: mega-crew-backend
 
+  # ===== SQL 초기화 설정 =====
+  sql:
+    init:
+      mode: never  # 운영환경에서 data.sql 실행 방지
+
   # ===== 데이터베이스 설정 (MySQL) =====
   datasource:
     url: ${DB_URL:jdbc:mysql://db:3306/mega_crew?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
@@ -134,11 +139,17 @@ jwt:
 # ===== 애플리케이션 설정 =====
 app:
   frontend:
-    url: ${FRONTEND_URL:http://localhost:3000}
+    url: ${FRONTEND_URL:https://korean-signlanguage-sudam.com}
 
 # ===== CORS 설정 =====
 cors:
-  allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://127.0.0.1:3000}
+  allowed-origins: ${CORS_ORIGINS:https://korean-signlanguage-sudam.com,http://localhost:3000,http://127.0.0.1:3000}
+
+# ===== 관리자 설정 =====
+application:
+  admin:
+    signup:
+      code: ${ADMIN_SIGNUP_CODE:-MEGACREW_ADMIN_DEFAULT}
 
 # ===== AI 서버 설정 (환경변수명 통일) =====
 ai:
@@ -235,12 +246,6 @@ springdoc:
     display-request-duration: true
     doc-expansion: none
     config-url: /v3/api-docs/swagger-config  # 명시적 설정 추가
-
-# ===== 관리자 설정 추가 ===== (여기에 추가)
-application:
-  admin:
-    signup:
-      code: ${ADMIN_SIGNUP_CODE:-MEGACREW_ADMIN_DEFAULT}
 
 # ===== 프로파일별 추가 설정 =====
 ---
