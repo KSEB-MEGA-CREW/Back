@@ -17,7 +17,7 @@ jobs:
   build-and-deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
-    
+
     steps:
       # 1. 코드 체크아웃
       # GitHub 리포지토리의 코드를 Runner에 가져옵니다.
@@ -90,11 +90,12 @@ jobs:
             echo "이전 컨테이너 종료..."
             sudo docker-compose -f docker-compose.prod.yml down
             
-            # .env 파일 생성 및 업데이트 (깃허브 시크릿 값 사용)
+            # .env 파일 생성 및 업데이트 (S3 관련 변수 제거)
             echo "환경 변수 파일 생성/업데이트..."
             cat <<EOF > .env
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DDL_AUTO=update
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
@@ -107,9 +108,6 @@ jobs:
             AI_SERVER_BASE_URL=${{ secrets.AI_SERVER_BASE_URL }}
             SL_API_KEY=${{ secrets.SL_API_KEY }}
             SL_API_URL=${{ secrets.SL_API_URL }}
-            S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
-            AWS_S3_ACCESS_KEY_ID=${{ secrets.AWS_S3_ACCESS_KEY_ID }}
-            AWS_S3_SECRET_ACCESS_KEY=${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
             AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
             ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
             IMAGE_TAG=${{ github.sha }}

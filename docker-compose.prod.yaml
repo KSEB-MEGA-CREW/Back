@@ -17,7 +17,7 @@ services:
       - DB_USERNAME=${DB_USERNAME:-root}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_POOL_SIZE=${DB_POOL_SIZE:-20}
-      - DDL_AUTO=${DDL_AUTO:-validate}  # 운영환경에서는 validate 권장
+      - DDL_AUTO=${DDL_AUTO:-update}  # validate → update로 변경
       - SHOW_SQL=${SHOW_SQL:-false}    # 운영환경에서는 false
 
       # Redis 연결 설정
@@ -57,11 +57,8 @@ services:
       - MAX_FILE_SIZE=${MAX_FILE_SIZE:-15MB}
       - MAX_REQUEST_SIZE=${MAX_REQUEST_SIZE:-15MB}
 
-      # AWS 설정 (운영 환경)
+      # AWS 설정 (ECR 로그인용만 유지)
       - AWS_REGION=${AWS_REGION:-ap-northeast-2}
-      - S3_BUCKET_NAME=${S3_BUCKET_NAME}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
 
     # 의존성 설정
     depends_on:
