@@ -111,6 +111,7 @@ jobs:
             AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
             ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
             IMAGE_TAG=${{ github.sha }}
+            ADMIN_SIGNUP_CODE=${{ secrets.ADMIN_SIGNUP_CODE }}
             EOF
             
             # 최신 이미지 가져오기 및 컨테이너 재시작
