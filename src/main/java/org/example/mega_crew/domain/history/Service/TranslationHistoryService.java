@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.mega_crew.domain.history.dto.WorkTypeStatsDto;
 import org.example.mega_crew.domain.history.dto.request.TextTo3DHistoryRequestDto;
+import org.example.mega_crew.domain.history.dto.request.TransHistoryRequestDto;
 import org.example.mega_crew.domain.history.dto.request.WebcamAnalysisHistoryRequestDto;
+import org.example.mega_crew.domain.history.dto.response.TransHistoryResponseDto;
 import org.example.mega_crew.domain.history.entity.TranslationHistory;
 import org.example.mega_crew.domain.history.entity.WorkType;
 import org.example.mega_crew.domain.history.repository.TranslationHistoryRepository;
@@ -152,5 +154,88 @@ public class TranslationHistoryService {
 
       userIds.forEach(userId -> limitUserRecords(userId, 100));
       log.info("User record limitation completed for {} users", userIds.size());
+   }
+
+   @Transactional
+   public TransHistoryResponseDto submitTranslationFeedback(TransHistoryRequestDto requestDto) {
+      try {
+         log.info("Translation feedback received - historyId: {}, feedback: {}, translatedText: {}, translatedTime: {}",
+             requestDto.getHistoryId(),
+             requestDto.getFeedback(),
+             requestDto.getTranslatedText(),
+             requestDto.getTranslatedTime());
+
+         // 히스토리 조회
+         TranslationHistory history = translationHistoryRepository.findById(requestDto.getHistoryId())
+             .orElseThrow(() -> new EntityNotFoundException("Translation history not found with id: " + requestDto.getHistoryId()));
+
+         // 요청에 userId가 있다면 권한 확인 (선택적)
+         if (requestDto.getUserId() != null && !history.getUser().getId().equals(requestDto.getUserId())) {
+            log.warn("User {} tried to submit feedback for history {} owned by user {}",
+                requestDto.getUserId(), requestDto.getHistoryId(), history.getUser().getId());
+            return TransHistoryResponseDto.builder()
+                .historyId(requestDto.getHistoryId())
+                .feedback(requestDto.getFeedback())
+                .translatedText(requestDto.getTranslatedText())
+                .translatedTime(requestDto.getTranslatedTime())
+                .status("ERROR")
+                .message("Unauthorized: Cannot submit feedback for other user's translation history")
+                .build();
+         }
+
+         // 이미 평가가 제출된 경우 확인
+         if (history.hasFeedback()) {
+            log.warn("Feedback already exists for history ID: {}", requestDto.getHistoryId());
+            return TransHistoryResponseDto.builder()
+                .historyId(requestDto.getHistoryId())
+                .feedback(requestDto.getFeedback())
+                .translatedText(requestDto.getTranslatedText())
+                .translatedTime(requestDto.getTranslatedTime())
+                .status("WARNING")
+                .message("Feedback already exists for this translation history")
+                .build();
+         }
+
+         // 평가 정보 업데이트
+         history.updateFeedback(
+             requestDto.getFeedback(),
+             requestDto.getTranslatedText(),
+             requestDto.getTranslatedTime()
+         );
+
+         // 저장
+         TranslationHistory updatedHistory = translationHistoryRepository.save(history);
+
+         // 성공 응답 생성
+         return TransHistoryResponseDto.builder()
+             .historyId(updatedHistory.getId())
+             .feedback(updatedHistory.getFeedback())
+             .translatedText(updatedHistory.getTranslatedText())
+             .translatedTime(updatedHistory.getTranslatedTime())
+             .status("SUCCESS")
+             .message("Translation feedback submitted successfully")
+             .build();
+
+      } catch (EntityNotFoundException e) {
+         log.error("Translation history not found: {}", e.getMessage());
+         return TransHistoryResponseDto.builder()
+             .historyId(requestDto.getHistoryId())
+             .feedback(requestDto.getFeedback())
+             .translatedText(requestDto.getTranslatedText())
+             .translatedTime(requestDto.getTranslatedTime())
+             .status("ERROR")
+             .message("Translation history not found")
+             .build();
+      } catch (Exception e) {
+         log.error("Error processing translation feedback: {}", e.getMessage(), e);
+         return TransHistoryResponseDto.builder()
+             .historyId(requestDto.getHistoryId())
+             .feedback(requestDto.getFeedback())
+             .translatedText(requestDto.getTranslatedText())
+             .translatedTime(requestDto.getTranslatedTime())
+             .status("ERROR")
+             .message("Failed to process feedback: " + e.getMessage())
+             .build();
+      }
    }
 }

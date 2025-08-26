@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.example.mega_crew.domain.history.Service.TranslationHistoryService;
 import org.example.mega_crew.domain.history.dto.WorkTypeStatsDto;
 import org.example.mega_crew.domain.history.dto.request.TextTo3DHistoryRequestDto;
+import org.example.mega_crew.domain.history.dto.request.TransHistoryRequestDto;
 import org.example.mega_crew.domain.history.dto.request.WebcamAnalysisHistoryRequestDto;
+import org.example.mega_crew.domain.history.dto.response.TransHistoryResponseDto;
 import org.example.mega_crew.domain.history.entity.TranslationHistory;
 import org.example.mega_crew.domain.history.entity.WorkType;
 import org.springframework.data.domain.Page;
@@ -60,6 +62,14 @@ public class TranslationHistoryController {
       );
 
       return ResponseEntity.ok(updated);
+   }
+
+   @PostMapping("/feedback")
+   public ResponseEntity<TransHistoryResponseDto> submitTranslationFeedback(
+       @Valid @RequestBody TransHistoryRequestDto requestDto) {
+
+      TransHistoryResponseDto response = translationHistoryService.submitTranslationFeedback(requestDto);
+      return ResponseEntity.ok(response);
    }
 
    @GetMapping("/user/{userId}")
