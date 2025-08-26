@@ -12,6 +12,9 @@ services:
       # Spring 프로파일 설정 (운영 환경)
       - SPRING_PROFILES_ACTIVE=docker-prod
 
+      # 운영환경에서는 data.sql 실행 안함
+      - SPRING_SQL_INIT_MODE=never
+
       # 데이터베이스 연결 설정 (운영 환경)
       - DB_URL=jdbc:mysql://db:3306/mega_crew?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
       - DB_USERNAME=${DB_USERNAME:-root}
