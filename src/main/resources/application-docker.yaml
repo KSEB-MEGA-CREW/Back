@@ -154,7 +154,7 @@ application:
 # ===== AI 서버 설정 (환경변수명 통일) =====
 ai:
   server:
-    base-url: ${AI_SERVER_BASE_URL:http://ai-server:5000}
+    base-url: ${AI_SERVER_BASE_URL:http://3.34.168.10:5000}
     endpoint: ${AI_SERVER_ENDPOINT:/analyze-frame}
     timeout: ${AI_SERVER_TIMEOUT:5000}
     max-retries: ${AI_SERVER_MAX_RETRIES:3}
