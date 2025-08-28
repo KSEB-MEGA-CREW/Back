@@ -15,7 +15,7 @@ server:
 app:
   frontend:
     url: ${FRONTEND_URL:https://korean-signlanguage-sudam.com}
-  base-url: ${BASE_URL:http://localhost:8080}
+  base-url: https://api.korean-signlanguage-sudam.com
 
 # =============================================================================
 # SECURITY & JWT CONFIGURATION
