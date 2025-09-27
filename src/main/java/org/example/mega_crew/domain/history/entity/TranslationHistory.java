@@ -6,9 +6,16 @@ import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
 
 import java.time.LocalDateTime;
-
+// 조회 성능 향상을 위해 인덱스 생성
+// 집계 쿼리 성능 향상을 위해 worktype별 작업 횟수를 저장하는 column 생성 고려
+// => 현재로선 인덱스로 충분해 보임, 추후 APM 연결 후 관찰하여 판단하기
 @Entity
-@Table(name = "translation_histories")
+@Table(name = "translation_histories",
+indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_user_is_expired", columnList = "user_id, is_expired"),
+        @Index(name = "idx_user_work_type", columnList = "user_id, work_type")
+})
 @Setter
 @Getter
 @Builder
