@@ -4,9 +4,12 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
-
+// 조회 성능 향상을 위한 인덱스 생성
 @Entity
-@Table(name = "incorrect_quiz_records")
+@Table(name = "incorrect_quiz_records",
+indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id")
+})
 @Getter
 @AllArgsConstructor
 @Builder

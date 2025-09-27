@@ -90,31 +90,110 @@ jobs:
             echo "이전 컨테이너 종료..."
             sudo docker-compose -f docker-compose.prod.yml down
             
-            # .env 파일 생성 및 업데이트 (S3 관련 변수 제거)
+            # .env 파일 생성 및 업데이트 (모든 필요한 환경변수 포함)
             echo "환경 변수 파일 생성/업데이트..."
             cat <<EOF > .env
+            # 데이터베이스 설정
+            DB_URL=jdbc:mysql://db:3306/mega_crew?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
             DDL_AUTO=update
+            
+            # Redis 설정
+            REDIS_HOST=redis
+            REDIS_PORT=6379
+            REDIS_DATABASE=0
+            REDIS_TIMEOUT=1000
+            
+            # JWT 설정
             JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRATION=86400000
+            
+            # 프론트엔드 및 CORS 설정
             FRONTEND_URL=${{ secrets.FRONTEND_URL }}
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+            
+            # OAuth2 설정
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
             NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}
             NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}
             KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
             KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+            
+            # AI 서버 설정
             AI_SERVER_BASE_URL=${{ secrets.AI_SERVER_BASE_URL }}
+            AI_SERVER_TIMEOUT=5000
+            AI_SERVER_MAX_RETRIES=3
+            AI_SERVER_MAX_POOLS=100
+            
+            # 수화 API 설정
             SL_API_KEY=${{ secrets.SL_API_KEY }}
             SL_API_URL=${{ secrets.SL_API_URL }}
+            
+            # AWS 및 ECR 설정
             AWS_ACCOUNT_ID=${{ secrets.AWS_ACCOUNT_ID }}
             ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
             IMAGE_TAG=${{ github.sha }}
+            AWS_REGION=${{ env.AWS_REGION }}
+            
+            # 관리자 설정
             ADMIN_SIGNUP_CODE=${{ secrets.ADMIN_SIGNUP_CODE }}
+            
+            # 파일 업로드 설정
+            MAX_FILE_SIZE=15MB
+            MAX_REQUEST_SIZE=15MB
             EOF
             
             # 최신 이미지 가져오기 및 컨테이너 재시작
             echo "최신 이미지 가져오기 및 컨테이너 시작..."
             sudo docker-compose -f docker-compose.prod.yml pull
             sudo docker-compose -f docker-compose.prod.yml up -d --force-recreate
+            
+            # 배포 검증 단계
+            echo "배포 완료 대기 중..."
+            sleep 60
+            
+            echo "컨테이너 상태 확인..."
+            sudo docker-compose -f docker-compose.prod.yml ps
+            
+            echo "애플리케이션 로그 확인 (최근 20줄)..."
+            sudo docker-compose -f docker-compose.prod.yml logs --tail=20 app
+            
+            echo "헬스체크 실행..."
+            max_attempts=5
+            attempt=1
+            
+            while [ $attempt -le $max_attempts ]; do
+              echo "헬스체크 시도 $attempt/$max_attempts..."
+              if curl -f --connect-timeout 10 --max-time 30 http://localhost:8080/actuator/health; then
+                echo "배포 성공! 애플리케이션이 정상적으로 실행 중입니다."
+                break
+              else
+                if [ $attempt -eq $max_attempts ]; then
+                  echo "배포 실패 - 헬스체크 실패"
+                  echo "애플리케이션 로그 (최근 50줄):"
+                  sudo docker-compose -f docker-compose.prod.yml logs --tail=50 app
+                  echo "컨테이너 상태:"
+                  sudo docker-compose -f docker-compose.prod.yml ps
+                  exit 1
+                else
+                  echo "헬스체크 실패, 30초 후 재시도..."
+                  sleep 30
+                  attempt=$((attempt + 1))
+                fi
+              fi
+            done
+            
+            echo "API 엔드포인트 테스트..."
+            if curl -f --connect-timeout 10 --max-time 30 http://localhost:8080/swagger-ui.html > /dev/null 2>&1; then
+              echo "Swagger UI 접근 가능"
+            else
+              echo "Swagger UI 접근 실패 (정상적일 수 있음)"
+            fi
+            
+            echo "사용하지 않는 Docker 리소스 정리..."
+            sudo docker system prune -f --volumes
+            
+            echo "배포 완료! 애플리케이션 상태:"
+            sudo docker-compose -f docker-compose.prod.yml ps

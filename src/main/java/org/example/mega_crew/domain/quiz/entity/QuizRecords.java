@@ -5,9 +5,13 @@ import lombok.*;
 
 import org.example.mega_crew.domain.user.entity.User;
 import org.example.mega_crew.global.common.BaseEntity;
-
+// 월별 조회를 제공하므로 user_id + created_date 조합 활용
 @Entity
-@Table(name = "quiz_records")
+@Table(name = "quiz_records",
+indexes = {
+        @Index(name = "idx_user_id", columnList = "user_id"),
+        @Index(name = "idx_user_created_date", columnList = "user_id, created_date")
+})
 @Getter
 @Builder
 @AllArgsConstructor
