@@ -206,7 +206,7 @@ networks:
     name: mega-crew-network-prod
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.25.0.0/24  # 인스턴스 변경으로 인한 VPC 서브넷과 충돌 방지를 위해 다른 대역 사용
 
 # 운영 환경에서는 named volume 사용하지 않음 (호스트 디렉토리 사용)
 volumes: {}
