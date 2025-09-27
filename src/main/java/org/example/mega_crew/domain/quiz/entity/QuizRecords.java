@@ -10,7 +10,7 @@ import org.example.mega_crew.global.common.BaseEntity;
 @Table(name = "quiz_records",
 indexes = {
         @Index(name = "idx_user_id", columnList = "user_id"),
-        @Index(name = "idx_user_created_date", columnList = "user_id, created_date")
+        @Index(name = "idx_user_created_date", columnList = "user_id, createdDate")
 })
 @Getter
 @Builder
