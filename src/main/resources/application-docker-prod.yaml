@@ -1,6 +1,3 @@
-# application-docker.yml
-# 도커 컨테이너 환경용 Spring Boot 설정 파일
-
 # ===== 서버 설정 =====
 server:
   port: ${APPLICATION_SERVER_PORT:8080}
@@ -246,29 +243,3 @@ springdoc:
     display-request-duration: true
     doc-expansion: none
     config-url: /v3/api-docs/swagger-config  # 명시적 설정 추가
-
-# ===== 프로파일별 추가 설정 =====
----
-spring:
-  config:
-    activate:
-      on-profile: docker-dev
-
-logging:
-  level:
-    org:
-      example:
-        mega_crew: DEBUG
-      springframework:
-        web: DEBUG
-    root: INFO
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: always
-
