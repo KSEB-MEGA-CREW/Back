@@ -10,7 +10,7 @@ services:
       - "8080:8080"
     environment:
       # Spring 프로파일 설정 (운영 환경)
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_PROFILES_ACTIVE=docker-prod
 
       # 운영환경에서는 data.sql 실행 안함
       - SPRING_SQL_INIT_MODE=never
