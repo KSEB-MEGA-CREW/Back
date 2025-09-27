@@ -264,6 +264,10 @@ logging:
     root: INFO
 
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
   endpoint:
     health:
       show-details: always
@@ -282,12 +286,3 @@ logging:
       springframework:
         web: WARN
     root: WARN
-
-management:
-  endpoint:
-    health:
-      show-details: never
-  endpoints:
-    web:
-      exposure:
-        include: health,info
