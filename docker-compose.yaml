@@ -34,8 +34,8 @@ services:
       - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
 
       # 애플리케이션 URL
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+      - FRONTEND_URL=${FRONTEND_URL:-https://d30bfqclzktlhg.cloudfront.net}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://d30bfqclzktlhg.cloudfront.net,http://127.0.0.1:3000}
 
       # OAuth2 설정
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
